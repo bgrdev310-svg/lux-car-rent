@@ -208,6 +208,14 @@ app.patch('/api/requests/:id', async (req, res) => {
   }
 });
 
+// Home Aggregation Route
+const homeRoutes = require('./routes/home');
+app.use('/api/home', homeRoutes);
+
+// Favorites Routes
+const favoritesRoutes = require('./routes/favorites');
+app.use('/api/favorites', favoritesRoutes);
+
 // Hero Section Routes
 app.get('/api/hero', async (req, res) => {
   try {
