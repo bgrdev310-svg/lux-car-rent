@@ -26,6 +26,11 @@ app.use(express.json());
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/luxurycar';
+
+// Debug: Print masked URI
+const maskedUri = MONGODB_URI.replace(/\/\/.*:.*@/, '//****:****@');
+console.log('Attempting to connect to MongoDB with URI:', maskedUri);
+
 mongoose.connect(MONGODB_URI, {
   serverSelectionTimeoutMS: 5000,
   connectTimeoutMS: 10000,
