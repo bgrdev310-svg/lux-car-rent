@@ -6,6 +6,7 @@ import RevenueChart from '@/components/admin/dashboard/RevenueChart';
 import TopCarsWidget from '@/components/admin/dashboard/TopCarsWidget';
 import CarFleetTable from '@/components/admin/dashboard/CarFleetTable';
 import Sidebar from "@/components/ui/sidebar";
+import { getApiUrl } from '@/lib/api-config';
 import { FaCar, FaCalendarCheck, FaMoneyBillWave, FaFilter } from 'react-icons/fa';
 
 export default function DashboardPage() {
@@ -21,7 +22,7 @@ export default function DashboardPage() {
                 setError(null);
 
                 // Fetch stats from external backend (charts, revenue, etc.)
-                const statsRes = await fetch(`http://localhost:5001/api/dashboard/stats?period=${period}`);
+                const statsRes = await fetch(getApiUrl(`/api/dashboard/stats?period=${period}`));
                 if (!statsRes.ok) {
                     throw new Error(`Failed to fetch dashboard data: ${statsRes.status} ${statsRes.statusText}`);
                 }
@@ -142,7 +143,7 @@ export default function DashboardPage() {
                         <p className="text-xs mt-2 text-red-300">Make sure the backend server is running on port 5001 and MongoDB is connected.</p>
                     </div>
                 )}
-                
+
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center pt-16 lg:pt-0 gap-4">
                     <div>
