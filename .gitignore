@@ -11,5 +11,5 @@ dist/
 Thumbs.db
 .vercel
 .vscode/
-package-lock.json
-yarn.lock
+# package-lock.json
+# yarn.lock
