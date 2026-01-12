@@ -2,19 +2,21 @@ const express = require('express'); // Server entry point (persistence removed)
 
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+require('dotenv').config({ path: './.env' });
+require('dotenv').config({ path: './.env.local' });
 const Hero = require('./models/Hero');
 const contactRoutes = require('./routes/contact');
 const brandRoutes = require('./routes/brands');
 const carsRoutes = require('./routes/cars');
 
 const app = express();
-const port = 5001;
+const port = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'http://localhost:3002',
     'https://luxurycarrentnoble.pages.dev',
     process.env.FRONTEND_URL
   ].filter(Boolean),
@@ -168,6 +170,10 @@ const dashboardRoutes = require('./routes/dashboard');
 app.use('/api/dashboard', dashboardRoutes);
 
 // Request Routes
+// Request Routes
+const chatContent = require('./routes/chatRequest');
+app.use('/api/chat', chatContent);
+
 app.get('/api/requests', async (req, res) => {
   try {
     const requests = await Request.find().sort({ timestamp: -1 });
@@ -215,6 +221,10 @@ app.use('/api/home', homeRoutes);
 // Favorites Routes
 const favoritesRoutes = require('./routes/favorites');
 app.use('/api/favorites', favoritesRoutes);
+
+// About Us Routes
+const aboutRoutes = require('./routes/about');
+app.use('/api/about', aboutRoutes);
 
 // Hero Section Routes
 app.get('/api/hero', async (req, res) => {

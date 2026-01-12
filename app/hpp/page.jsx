@@ -77,6 +77,8 @@ const BrandProvider = ({ children }) => {
           }
         }
       } catch (err) {
+        console.error("Critical Fetch Error:", err);
+        console.log("Attempted Endpoint:", HOME_ENDPOINT);
         setError(err.message);
         setBrands([]);
         setHeroData(null);
@@ -121,7 +123,15 @@ const useBrand = () => {
 };
 
 function Homepage() {
+  /* Existing hooks */
   const { heroData, logoData, galleryData, homeCars, selectedBrand, setSelectedBrand, getVisibleBrands, loading, error } = useBrand();
+
+  // Fix Hydration Mismatch: Ensure client renders match server initially
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [openIndex, setOpenIndex] = useState(0);
@@ -311,7 +321,7 @@ function Homepage() {
     };
   }, [mobileMenuOpen]);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
         <motion.div
@@ -427,17 +437,15 @@ function Homepage() {
         </AnimatePresence>
 
         {/* Hero Content */}
-        <div className="relative z-30 flex flex-col px-4 lg:px-12 min-h-screen pt-32 lg:pt-0">
+        {/* Hero Content - Rewritten Grid Layout */}
+        <div className="relative z-30 w-full max-w-[1700px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center px-4 lg:px-12 min-h-screen pt-32 lg:pt-0">
 
-          {/* Main content grid */}
-          <div className="flex-1 flex flex-col lg:flex-row items-center w-full max-w-[1600px] mx-auto">
-
-            {/* Left Column: Text Content */}
+          {/* Left Side: Text Content */}
+          <div className="flex flex-col justify-center order-2 lg:order-1">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-              className="w-full lg:w-1/2 flex flex-col justify-center lg:pr-12 mb-12 lg:mb-0"
             >
               {/* Welcome Label */}
               <motion.div
@@ -483,66 +491,65 @@ function Homepage() {
                 </div>
               </div>
             </motion.div>
+          </div>
 
-            {/* Right Column: Car Card & Find Us */}
-            <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-end relative h-full justify-center min-h-[500px]">
+          {/* Right Side: Car Card & Find Us Button */}
+          <div className="relative h-full flex flex-col justify-center items-end order-1 lg:order-2 min-h-[400px] lg:min-h-[600px]">
 
-              {/* Find Us Button (Restored Design) */}
-              <Link href="/findus">
-                <motion.button
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8, delay: 1.2 }}
-                  className="hidden xl:flex flex-col items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-b from-gray-700 to-gray-600 text-white px-1 py-11 rounded-full font-bruno font-semibold hover:from-yellow-500 hover:to-yellow-400 hover:text-black transition-all duration-300 shadow-lg"
-                  style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', zIndex: 10 }}
-                >
-                  <span style={{ letterSpacing: '0.2em' }}>
-                    FIND US
-                  </span>
-                </motion.button>
-              </Link>
-
-              {/* Car Info Card (Restored Design) */}
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1 }}
-                className="hidden lg:flex flex-col justify-center pr-24"
+            {/* Find Us Button - Fixed High Position & Visible on LG */}
+            <Link href="/findus" className="absolute top-[5%] right-0 z-50">
+              <motion.button
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 1.2 }}
+                className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-b from-gray-700 to-gray-600 text-white px-3 py-8 rounded-full font-bruno font-semibold hover:from-yellow-500 hover:to-yellow-400 hover:text-black transition-all duration-300 shadow-lg"
+                style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
               >
-                <div className="backdrop-blur-lg bg-black/40 p-2 rounded-2xl border border-white/10 w-64">
-                  <div className="flex items-center gap-3 mb-4">
-                    {heroData.carCard?.logo && (
-                      <img
-                        src={heroData.carCard.logo}
-                        alt="Car Logo"
-                        className="w-8 h-12 lg:w-10 lg:h-14 object-contain"
-                      />
-                    )}
-                    <span className="text-white font-semibold text-lg">
-                      {heroData.carCard?.title}
-                    </span>
-                  </div>
-                  {heroData.carCard?.image && (
+                <span style={{ letterSpacing: '0.2em' }}>
+                  FIND US
+                </span>
+              </motion.button>
+            </Link>
+
+            {/* Car Info Card - Positioned in Flow (Centered/Bottom) - Pushed to Right Edge */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1 }}
+              className="hidden lg:flex flex-col justify-center pr-0 lg:-mr-12 relative z-10 mt-32"
+            >
+              <div className="backdrop-blur-lg bg-black/40 p-2 rounded-2xl border border-white/10 w-64 shadow-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  {heroData.carCard?.logo && (
                     <img
-                      src={heroData.carCard.image}
-                      alt={heroData.carCard?.title}
-                      className="w-full rounded-lg mb-4"
+                      src={heroData.carCard.logo}
+                      alt="Car Logo"
+                      className="w-8 h-12 lg:w-10 lg:h-14 object-contain"
                     />
                   )}
-                  <div className="flex justify-between mb-4 text-sm text-gray-300">
-                    {(heroData.carCard?.specs || []).map((spec, index) => (
-                      <span key={index}>{spec}</span>
-                    ))}
-                  </div>
-                  <Link href="/cars">
-                    <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-black font-semibold rounded-full transition-all duration-300">
-                      Explore Our Cars
-                    </Button>
-                  </Link>
+                  <span className="text-white font-semibold text-lg">
+                    {heroData.carCard?.title}
+                  </span>
                 </div>
-              </motion.div>
-            </div>
-
+                {heroData.carCard?.image && (
+                  <img
+                    src={heroData.carCard.image}
+                    alt={heroData.carCard?.title}
+                    className="w-full rounded-lg mb-4"
+                  />
+                )}
+                <div className="flex justify-between mb-4 text-sm text-gray-300">
+                  {(heroData.carCard?.specs || []).map((spec, index) => (
+                    <span key={index}>{spec}</span>
+                  ))}
+                </div>
+                <Link href="/cars">
+                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-black font-semibold rounded-full transition-all duration-300">
+                    Explore Our Cars
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>

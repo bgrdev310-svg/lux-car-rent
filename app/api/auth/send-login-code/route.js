@@ -4,53 +4,58 @@ import { connectDB } from '../../../../lib/mongodb';
 import ResetCode from '../../../../models/ResetCode';
 import User from '../../../../models/User';
 
-// WhatsApp API credentials (set these in your environment variables)
-const whatsappAccessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-const whatsappPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+// Infobip API credentials
+const INFOBIP_BASE_URL = process.env.INFOBIP_BASE_URL;
+const INFOBIP_API_KEY = process.env.INFOBIP_API_KEY;
+const INFOBIP_SENDER = process.env.INFOBIP_SENDER_NUMBER || '447860099299';
 
 async function sendWhatsAppOTP(phone, code) {
-  const url = `https://graph.facebook.com/v19.0/${whatsappPhoneNumberId}/messages`;
+  // Infobip requires phone without the '+' for some endpoints, but usually E.164 is fine.
+  // The 'to' field usually expects format: "447123456789"
+  const cleanPhone = phone.replace('+', '');
+
+  const url = `https://${INFOBIP_BASE_URL}/whatsapp/1/message/text`;
   const data = {
-    messaging_product: 'whatsapp',
-    to: phone,
-    type: 'template',
-    template: {
-      name: 'wamotp',
-      language: { code: 'en_US' },
-      components: [
-        {
-          type: 'body',
-          parameters: [
-            { type: 'text', text: code } // This fills {{1}} in the body
-          ]
-        },
-        {
-          type: 'button',
-          sub_type: 'url',
-          index: 0,
-          parameters: [
-            { type: 'text', text: code } // This fills {{1}} in the button URL
-          ]
-        }
-      ]
+    from: INFOBIP_SENDER,
+    to: cleanPhone,
+    content: {
+      text: `Your Noble Verification Code is: ${code}\n\nWelcome to the Fleet.`
     }
   };
-  await axios.post(url, data, {
-    headers: {
-      'Authorization': `Bearer ${whatsappAccessToken}`,
-      'Content-Type': 'application/json',
-    },
-  });
+
+  console.log('--- sending Infobip WhatsApp ---');
+  console.log('To:', cleanPhone);
+  console.log('From:', INFOBIP_SENDER);
+  console.log('Payload:', JSON.stringify(data, null, 2));
+
+  try {
+    const response = await axios.post(url, data, {
+      headers: {
+        'Authorization': `App ${INFOBIP_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+    });
+    console.log('Infobip Success Response:', JSON.stringify(response.data, null, 2));
+  } catch (error) {
+    if (error.response) {
+      console.error('Infobip API Error Response:', JSON.stringify(error.response.data, null, 2));
+      console.error('Status:', error.response.status);
+    } else {
+      console.error('Infobip Network Error:', error.message);
+    }
+    throw error;
+  }
 }
 
 export async function POST(req) {
   await connectDB();
   const { phone, mode } = await req.json();
 
-  if (!whatsappAccessToken || !whatsappPhoneNumberId) {
-    console.error('Missing WhatsApp environment variables.');
+  if (!INFOBIP_API_KEY || !INFOBIP_BASE_URL) {
+    console.error('Missing Infobip environment variables.');
     return NextResponse.json(
-      { error: 'Server is missing WhatsApp credentials. Set WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID.' },
+      { error: 'Server is missing WhatsApp credentials.' },
       { status: 500 }
     );
   }
@@ -94,12 +99,19 @@ export async function POST(req) {
 
   try {
     await sendWhatsAppOTP(phone, code);
+    // If successful:
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('WhatsApp API error (send-login-code):', err?.response?.data || err);
-    const message = err?.response?.data?.error?.message || 'Failed to send WhatsApp message.';
-    return NextResponse.json({ error: message }, { status: 500 });
+    // DEV MODE BYPASS: If API fails (e.g., Unregistered Number), allow login anyway
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('\n\n\x1b[33m%s\x1b[0m', '!!! DEV MODE BYPASS - INFOBIP FAILED !!!');
+      console.log('\x1b[36m%s\x1b[0m', `>>> OTP FOR ${phone} IS: ${code} <<<`);
+      console.log('\x1b[33m%s\x1b[0m', '!!! ENTER THIS CODE TO LOGIN !!!\n\n');
+      // Return success so the UI proceeds to the verification step
+      return NextResponse.json({ success: true, message: 'Dev Mode: Code logged to console' });
+    }
+
+    console.error('Infobip API error (send-login-code):', err?.response?.data || err);
+    return NextResponse.json({ error: 'Failed to send WhatsApp message via Infobip. Check server logs.' }, { status: 500 });
   }
 }
-
-

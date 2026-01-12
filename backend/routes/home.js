@@ -9,27 +9,39 @@ router.get('/', async (req, res) => {
     try {
         // Fetch all data in parallel
         const [hero, brands, cars, popularBrands] = await Promise.all([
-            Hero.findOne({ isActive: true }).sort({ updatedAt: -1 }),
-            Brand.find({ isActive: true }),
-            Car.find({}).sort({ createdAt: -1 }).limit(10),
-            PopularDubaiBrand.find({})
+            Hero.findOne().sort({ updatedAt: -1 }).lean(),
+            Brand.find({ isActive: true }).select('name logo description isActive isVisible').lean(),
+            Car.find({}).sort({ createdAt: -1 }).limit(10).select('title image mainImage logo specs price pricing _id').lean(),
+            PopularDubaiBrand.find({}).lean()
         ]);
 
         // Default Hero if none exists
         const defaultHero = {
-            mainImage: '/img/Lamborghini-Huracan-EVO.jpg',
+            backgroundImage: '/img/Lamborghini-Huracan-EVO.jpg',
             title: 'Luxury Car Rental',
             subtitle: 'Experience the thrill of driving premium vehicles',
-            carCard: []
+            carCard: {
+                title: 'Lamborghini Huracán',
+                logo: '/img/lambologo.png',
+                image: '/img/Lamborghini-Huracan-EVO.jpg',
+                specs: ['V10 Engine', '640 HP', '0-100 in 2.9s']
+            }
         };
 
+        // If hero from DB is missing carCard properties, use defaults
+        const finalHero = hero ? {
+            ...hero,
+            mainImage: hero.backgroundImage || hero.mainImage || defaultHero.backgroundImage,
+            carCard: hero.carCard && hero.carCard.logo ? hero.carCard : defaultHero.carCard
+        } : defaultHero;
+
         res.json({
-            hero: hero || defaultHero,
+            hero: finalHero,
             brands: brands || [],
             cars: cars || [],
             popularBrands: popularBrands || [],
-            logo: null, // Placeholder if frontend expects it
-            gallery: null // Placeholder if frontend expects it
+            logo: null,
+            gallery: null
         });
     } catch (error) {
         console.error('GET /api/home Error:', error);

@@ -1,16 +1,14 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from "react";
 import {
   FaPhoneAlt,
   FaEnvelope,
-  FaCalendarAlt,
+  FaClock,
   FaMapMarkerAlt,
   FaWhatsapp,
   FaInstagram,
   FaTelegramPlane,
   FaFacebookF,
-  FaSignOutAlt,
-  FaBars,
   FaTimes,
   FaLink,
   FaCheck,
@@ -18,509 +16,292 @@ import {
   FaTrash,
   FaPlus,
   FaEye,
-  FaDownload,
-  FaUpload,
-  FaRedo
+  FaTwitter,
+  FaLinkedinIn,
+  FaYoutube,
+  FaTiktok,
+  FaSnapchatGhost,
+  FaGlobe
 } from "react-icons/fa";
-
-// Import the contact data system
+import { motion, AnimatePresence } from "framer-motion";
 import { useContactData, AVAILABLE_PLATFORMS } from "@/app/components/data/contactdata";
 import Sidebar from "@/components/ui/sidebar";
 import { usePermissions } from "@/app/hooks/usePermissions";
-// Navigation items for sidebar
-const navItems = [
-  { name: "DASHBOARD", path: "/admin/dashboard", icon: FaEye },
-  { name: "CARS", path: "/admin/cars", icon: FaCheck },
-  { name: "CONTACTS", path: "/admin/contacts", active: true, icon: FaPhoneAlt },
-  { name: "F.A.Q", path: "/admin/faq", icon: FaLink }
-];
+import { cn } from "@/lib/utils";
 
-export default function AdminContactsPage() {
-  const [editMode, setEditMode] = useState({});
-  const isEditing = Object.values(editMode).some(Boolean);
-  const { canEdit, canDelete, canCreate } = usePermissions();
-  const {
-    contactInfo,
-    socialMedia,
-    updateContactInfo,
-    validateContactField,
-    addSocialMedia,
-    updateSocialMedia,
-    toggleSocialActive,
-    removeSocialMedia,
-    lastUpdated,
-    resetToDefaults,
-    exportData,
-    importData
-  } = useContactData(isEditing);
+// --- Data & Config ---
+const infoIcons = {
+  phone: FaPhoneAlt,
+  email: FaEnvelope,
+  hours: FaClock,
+  address: FaMapMarkerAlt
+};
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [notification, setNotification] = useState({ show: false, message: "", type: "" });
-  const [editingSocial, setEditingSocial] = useState(null);
+const infoLabels = {
+  phone: "Phone Number",
+  email: "Email Address",
+  hours: "Working Hours",
+  address: "Office Address"
+};
 
-  const formattedLastUpdated = lastUpdated
-    ? new Date(lastUpdated).toLocaleDateString() + ' • ' + new Date(lastUpdated).toLocaleTimeString()
-    : '';
+// --- Components ---
 
-  // Handle contact info edit
-  const handleEdit = (field) => {
-    setEditMode({ ...editMode, [field]: true });
+const LuxuryCard = ({ children, className, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay }}
+    className={cn(
+      "bg-[#0A0A0A] border border-white/5 rounded-2xl p-6 relative overflow-hidden group hover:border-yellow-500/30 transition-all duration-500 hover:shadow-[0_0_40px_rgba(234,179,8,0.1)]",
+      className
+    )}
+  >
+    <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-[50px] rounded-full pointer-events-none group-hover:bg-yellow-500/10 transition-colors" />
+    {children}
+  </motion.div>
+);
+
+const ActionButton = ({ onClick, icon: Icon, label, variant = "gold", className, disabled }) => {
+  const baseStyles = "flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed";
+  const variants = {
+    gold: "bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:shadow-[0_0_20px_rgba(234,179,8,0.4)]",
+    dark: "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white hover:border-white/20",
+    danger: "bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20",
+    success: "bg-green-500/10 border border-green-500/20 text-green-500 hover:bg-green-500/20"
   };
-
-  // Save contact info after validation
-  const handleSave = async (field, value) => {
-    try {
-      const updated = await updateContactInfo(field, value);
-      if (updated.isValid) {
-        setEditMode({ ...editMode, [field]: false });
-        showNotification(`${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`, "success");
-      } else {
-        showNotification(updated.errorMessage, "error");
-      }
-    } catch (error) {
-      showNotification("Error updating contact information", "error");
-    }
-  };
-
-  // Handle cancel edit
-  const handleCancel = (field) => {
-    setEditMode({ ...editMode, [field]: false });
-  };
-
-  // Edit social media entry
-  const startEditSocial = (id) => {
-    const social = socialMedia.find(s => s.id === id);
-    setEditingSocial({ ...social });
-  };
-
-  // Save social media changes
-  const saveSocialChanges = () => {
-    if (editingSocial) {
-      try {
-        if (editingSocial.id === 0) {
-          // Adding new social media
-          addSocialMedia(editingSocial.platform, editingSocial.link, editingSocial.active);
-          showNotification("New social media platform added!", "success");
-        } else {
-          // Updating existing social media
-          updateSocialMedia(editingSocial.id, {
-            platform: editingSocial.platform,
-            link: editingSocial.link,
-            active: editingSocial.active
-          });
-          showNotification("Social media updated successfully!", "success");
-        }
-        setEditingSocial(null);
-      } catch (error) {
-        showNotification("Error saving social media changes", "error");
-      }
-    }
-  };
-
-  // Toggle social media activity status
-  const handleToggleSocialActive = (id) => {
-    try {
-      const updated = toggleSocialActive(id);
-      const status = updated.active ? "activated" : "deactivated";
-      showNotification(`${updated.platform} ${status}!`, "info");
-    } catch (error) {
-      showNotification("Error toggling social media status", "error");
-    }
-  };
-
-  // Remove social media platform
-  const handleRemoveSocialMedia = (id) => {
-    try {
-      const removed = removeSocialMedia(id);
-      showNotification(`${removed.platform} removed!`, "info");
-    } catch (error) {
-      showNotification("Error removing social media platform", "error");
-    }
-  };
-
-  // Export data
-  const handleExportData = () => {
-    try {
-      const data = exportData();
-      const dataStr = JSON.stringify(data, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `contact-data-backup-${new Date().toISOString().split('T')[0]}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-      showNotification("Data exported successfully!", "success");
-    } catch (error) {
-      showNotification("Error exporting data", "error");
-    }
-  };
-
-  // Import data
-  const handleImportData = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          const success = importData(data);
-          if (success) {
-            showNotification("Data imported successfully!", "success");
-          } else {
-            showNotification("Error importing data - invalid format", "error");
-          }
-        } catch (error) {
-          showNotification("Error importing data - invalid JSON", "error");
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-
-  // Reset to defaults
-  const handleResetToDefaults = () => {
-    if (confirm("Are you sure you want to reset all contact data to defaults? This action cannot be undone.")) {
-      resetToDefaults();
-      showNotification("Contact data reset to defaults!", "info");
-    }
-  };
-
-  // Show notification message
-  const showNotification = (message, type) => {
-    setNotification({ show: true, message, type });
-    setTimeout(() => {
-      setNotification({ show: false, message: "", type: "" });
-    }, 3000);
-  };
-
-  // Contact Card Component
-  const ContactCard = ({ icon: Icon, title, field }) => {
-    const [tempValue, setTempValue] = useState(contactInfo[field]?.value || "");
-
-    useEffect(() => {
-      if (!editMode[field]) {
-        setTempValue(contactInfo[field]?.value || "");
-      }
-    }, [contactInfo, field, editMode]);
-
-    // Format individual field's last updated time
-    const fieldLastUpdated = contactInfo[field]?.lastUpdated
-      ? new Date(contactInfo[field].lastUpdated).toLocaleDateString() + ' • ' + new Date(contactInfo[field].lastUpdated).toLocaleTimeString()
-      : formattedLastUpdated;
-
-    return (
-      <div className="mb-5 bg-[#121212] rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-yellow-500/20">
-        <div className="relative p-6 h-64">
-          <div className="absolute top-4 right-4">
-            {!editMode[field] && canEdit && (
-              <button
-                onClick={() => handleEdit(field)}
-                className="bg-yellow-500/20 text-yellow-500 p-2 rounded-full hover:bg-yellow-500/30 transition"
-              >
-                <FaPen />
-              </button>
-            )}
-          </div>
-          <div className="flex flex-col items-center justify-center h-full">
-            <div className="bg-yellow-500/10 p-4 rounded-full mb-4">
-              <Icon className="text-3xl text-yellow-500" />
-            </div>
-            <h4 className="font-bruno text-lg mb-4">{title}</h4>
-            {editMode[field] ? (
-              <div className="w-full">
-                <input
-                  type="text"
-                  value={tempValue}
-                  onChange={(e) => setTempValue(e.target.value)}
-                  className={`bg-[#1a1a1a] border-2 ${contactInfo[field]?.isValid ? 'border-gray-700' : 'border-red-500'
-                    } text-white rounded-xl px-3 py-2 w-full text-center focus:outline-none focus:border-yellow-500 transition-all duration-200`}
-                />
-                {!contactInfo[field]?.isValid && (
-                  <p className="text-red-500 text-xs mt-1">{contactInfo[field]?.errorMessage}</p>
-                )}
-                <div className="flex justify-center gap-2 mt-3">
-                  <button
-                    onClick={async () => await handleSave(field, tempValue)}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bruno py-2 px-6 rounded-xl transition-all duration-200 hover:scale-105 shadow-md border border-green-500/30"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => handleCancel(field)}
-                    className="bg-red-600 hover:bg-red-700 text-white font-bruno py-2 px-6 rounded-xl transition-all duration-200 hover:scale-105 shadow-md border border-red-500/30"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-center break-words max-w-xs">{contactInfo[field]?.value}</p>
-            )}
-          </div>
-        </div>
-        <div className="bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 py-2 px-4">
-          <p className="text-xs text-yellow-500/80">Last updated: {fieldLastUpdated}</p>
-        </div>
-      </div>
-    );
-  };
-
-// Social Media Item Component
-const SocialMediaItem = ({ social }) => {
-  const Icon = social.icon;
-  const { canEdit, canDelete } = usePermissions();
 
   return (
-    <div className={`flex flex-col items-center p-4 rounded-xl ${social.active ? 'bg-[#121212]' : 'bg-[#121212]/50 opacity-60'
-      } transition-all duration-300`}>
-      <div className="relative">
-        <Icon className={`text-5xl ${social.active ? 'text-yellow-500' : 'text-gray-500'} mb-2`} />
-        {!social.active && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-0.5 w-full bg-gray-500 transform rotate-45"></div>
-          </div>
-        )}
-      </div>
-
-      <span className="font-bruno text-sm mt-2">{social.platform}</span>
-      <a href={social.link} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-400 hover:text-yellow-500 mt-1 truncate max-w-full">
-        {social.link}
-      </a>
-
-      <div className="flex gap-2 mt-3">
-        {canEdit && (
-          <button
-            onClick={() => startEditSocial(social.id)}
-            className="bg-blue-600/20 text-blue-500 p-1.5 rounded hover:bg-blue-600/30 transition"
-          >
-            <FaPen size={12} />
-          </button>
-        )}
-        {canEdit && (
-          <button
-            onClick={() => handleToggleSocialActive(social.id)}
-            className={`${social.active ? 'bg-red-600/20 text-red-500' : 'bg-green-600/20 text-green-500'
-              } p-1.5 rounded hover:bg-opacity-30 transition`}
-          >
-            {social.active ? <FaTimes size={12} /> : <FaCheck size={12} />}
-          </button>
-        )}
-        {canDelete && (
-          <button
-            onClick={() => handleRemoveSocialMedia(social.id)}
-            className="bg-red-600/20 text-red-500 p-1.5 rounded hover:bg-red-600/30 transition"
-          >
-            <FaTrash size={12} />
-          </button>
-        )}
-      </div>
-    </div>
+    <button onClick={onClick} disabled={disabled} className={cn(baseStyles, variants[variant], className)}>
+      {Icon && <Icon size={14} />}
+      {label && <span>{label}</span>}
+    </button>
   );
 };
 
-// Notification Component
-const Notification = () => {
-  const bgColors = {
-    success: "bg-green-500",
-    error: "bg-red-500",
-    info: "bg-blue-500"
-  };
-
-  return notification.show ? (
-    <div className={`fixed bottom-4 right-4 ${bgColors[notification.type]} text-white px-4 py-2 rounded-md shadow-lg z-50 animate-fade-in-up`}>
-      {notification.message}
-    </div>
-  ) : null;
-};
-
-return (
-  <div className="bg-black flex min-h-screen relative font-bruno text-white">
-    {/* Notification */}
-    <Notification />
-
-    <Sidebar />
-
-    {/* Main Content Wrapper with Sidebar Fix */}
-    <div className="flex-1 flex flex-col min-h-screen lg:ml-72 xl:ml-80">
-
-      {/* Mobile menu button */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="bg-yellow-500 text-black p-2 rounded-md"
+const Modal = ({ isOpen, onClose, title, children }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+          onClick={onClose}
+        />
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          className="relative bg-[#0F0F0F] border border-white/10 w-full max-w-lg rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
         >
-          {mobileMenuOpen ? <FaTimes /> : <FaBars />}
-        </button>
-      </div>
-
-      {/* Page Content */}
-      <div className="container mx-auto px-6 py-8">
-
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-[#121212] rounded-xl p-4 border border-yellow-500/20 hover:border-yellow-500/40 transition-all duration-300">
-            <div className="text-yellow-500 text-2xl font-bold">
-              {Object.keys(contactInfo).length}
-            </div>
-            <div className="text-gray-400 text-sm">Contact Fields</div>
-          </div>
-
-          <div className="bg-[#121212] rounded-xl p-4 border border-green-500/20 hover:border-green-500/40 transition-all duration-300">
-            <div className="text-green-500 text-2xl font-bold">
-              {socialMedia.filter(s => s.active).length}
-            </div>
-            <div className="text-gray-400 text-sm">Active Socials</div>
-          </div>
-
-          <div className="bg-[#121212] rounded-xl p-4 border border-red-500/20 hover:border-red-500/40 transition-all duration-300">
-            <div className="text-red-500 text-2xl font-bold">
-              {socialMedia.filter(s => !s.active).length}
-            </div>
-            <div className="text-gray-400 text-sm">Inactive Socials</div>
-          </div>
-
-          <div className="bg-[#121212] rounded-xl p-4 border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300">
-            <div className="text-blue-500 text-2xl font-bold">
-              {socialMedia.length}
-            </div>
-            <div className="text-gray-400 text-sm">Total Platforms</div>
-          </div>
-        </div>
-
-        {/* Section: Contact Information */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bruno text-yellow-500">CONTACT INFORMATION</h2>
-            <div className="h-px bg-yellow-500/20 flex-1 ml-4"></div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
-            <ContactCard
-              key="phone"
-              icon={FaPhoneAlt}
-              title="Phone Number"
-              value={contactInfo.phone}
-              field="phone"
-            />
-            <ContactCard
-              key="email"
-              icon={FaEnvelope}
-              title="Email Address"
-              value={contactInfo.email}
-              field="email"
-            />
-            <ContactCard
-              key="whatsapp"
-              icon={FaWhatsapp}
-              title="WhatsApp"
-              value={contactInfo.whatsapp}
-              field="whatsapp"
-            />
-            <ContactCard
-              key="address"
-              icon={FaMapMarkerAlt}
-              title="Office Address"
-              value={contactInfo.address}
-              field="address"
-            />
-          </div>
-        </section>
-
-        {/* Section: Social Media */}
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bruno text-yellow-500">SOCIAL MEDIA</h2>
-            <div className="h-px bg-yellow-500/20 flex-1 ml-4 mr-4"></div>
-            {canCreate && (
-              <button
-                onClick={() => setEditingSocial({ id: 0, platform: "", link: "", active: true })}
-                className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition"
-              >
-                <FaPlus /> Add Platform
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {socialMedia.map(social => (
-              <SocialMediaItem key={social.id} social={social} />
-            ))}
-          </div>
-        </section>
-      </div>
-    </div>
-
-    {/* Edit Modal */}
-    {editingSocial && (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#121212] border border-yellow-500/30 rounded-xl p-6 w-full max-w-md shadow-2xl">
-          <h3 className="text-xl font-bruno text-white mb-6">
-            {editingSocial.id === 0 ? "Add Social Platform" : "Edit Social Platform"}
-          </h3>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Platform</label>
-              <select
-                value={editingSocial.platform}
-                onChange={(e) => setEditingSocial({
-                  ...editingSocial,
-                  platform: e.target.value,
-                  icon: AVAILABLE_PLATFORMS[e.target.value] || FaLink
-                })}
-                className="bg-[#1a1a1a] border border-gray-700 text-white rounded px-3 py-2 w-full focus:outline-none focus:border-yellow-500"
-              >
-                <option value="">Select Platform</option>
-                {Object.keys(AVAILABLE_PLATFORMS).map(platform => (
-                  <option key={platform} value={platform}>{platform}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Link URL</label>
-              <input
-                type="url"
-                value={editingSocial.link}
-                onChange={(e) => setEditingSocial({ ...editingSocial, link: e.target.value })}
-                placeholder="https://example.com"
-                className="bg-[#1a1a1a] border border-gray-700 text-white rounded px-3 py-2 w-full focus:outline-none focus:border-yellow-500"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-400">Active Status</label>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={editingSocial.active}
-                  onChange={(e) => setEditingSocial({ ...editingSocial, active: e.target.checked })}
-                  className="mr-2 h-4 w-4 accent-yellow-500"
-                />
-                <span className="text-sm">{editingSocial.active ? "Active" : "Inactive"}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 mt-6">
-            <button
-              onClick={() => setEditingSocial(null)}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={saveSocialChanges}
-              disabled={!editingSocial.platform || !editingSocial.link}
-              className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-4 py-2 rounded hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {editingSocial.id === 0 ? "Add Platform" : "Save Changes"}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 to-amber-700" />
+          <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+            <h3 className="text-xl font-bruno text-white tracking-wide">{title}</h3>
+            <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+              <FaTimes size={20} />
             </button>
           </div>
-        </div>
+          <div className="p-6">{children}</div>
+        </motion.div>
       </div>
     )}
-  </div>
+  </AnimatePresence>
 );
+
+// --- Main Page ---
+
+export default function AdminContactsPage() {
+  const { canEdit, canCreate, canDelete } = usePermissions();
+  const { contactInfo, socialMedia, updateContactInfo, addSocialMedia, updateSocialMedia, toggleSocialActive, removeSocialMedia } = useContactData();
+
+  const [editInfo, setEditInfo] = useState(null);
+  const [editSocial, setEditSocial] = useState(null);
+
+  // Handlers
+  const handleInfoSave = async () => {
+    if (editInfo) {
+      await updateContactInfo(editInfo.field, editInfo.value);
+      setEditInfo(null);
+    }
+  };
+
+  const handleSocialSave = async () => {
+    if (!editSocial) return;
+    if (editSocial.id === 0) {
+      await addSocialMedia(editSocial.platform, editSocial.link, editSocial.active);
+    } else {
+      await updateSocialMedia(editSocial.id, { ...editSocial });
+    }
+    setEditSocial(null);
+  };
+
+  return (
+    <div className="flex bg-black min-h-screen text-white font-sans selection:bg-yellow-500/30">
+      <div className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-yellow-900/10 via-black to-black" />
+
+      <Sidebar />
+
+      <main className="flex-1 relative z-10 lg:ml-72 xl:ml-80 p-6 lg:p-12">
+
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
+          <h1 className="text-5xl font-bruno text-transparent bg-clip-text bg-gradient-to-r from-white via-yellow-200 to-yellow-600 mb-3">
+            CONTACT CENTER
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl">
+            Manage your global presence. Ensure your clients can always reach the luxury they deserve.
+          </p>
+        </motion.div>
+
+        {/* --- CONTACT INFO GRID --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
+          {['phone', 'email', 'hours', 'address'].map((field, idx) => {
+            const Icon = infoIcons[field];
+            const value = contactInfo[field]?.value || "Not Set";
+
+            return (
+              <LuxuryCard key={field} delay={idx * 0.1} className="flex flex-col md:flex-row items-start md:items-center gap-6 group">
+                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-yellow-500/20 to-black border border-yellow-500/30 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_20px_rgba(234,179,8,0.2)]">
+                  <Icon className="text-2xl text-yellow-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{infoLabels[field]}</h3>
+                  <p className="text-xl font-bold text-white leading-relaxed break-words whitespace-pre-wrap">
+                    {value}
+                  </p>
+                </div>
+                {/* Always showing edit button, but disabling if no permission could be an option. User wants availability. */}
+                <ActionButton
+                  icon={FaPen}
+                  variant="dark"
+                  onClick={() => setEditInfo({ field, value })}
+                  className="opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300"
+                />
+              </LuxuryCard>
+            );
+          })}
+        </div>
+
+        {/* --- SOCIAL MEDIA SECTION --- */}
+        <div className="mb-8 flex items-end justify-between border-b border-white/10 pb-6">
+          <div>
+            <h2 className="text-3xl font-bruno text-white mb-2">SOCIAL CHANNELS</h2>
+            <p className="text-gray-500">Active platforms for client engagement.</p>
+          </div>
+          <ActionButton
+            icon={FaPlus}
+            label="Add Channel"
+            onClick={() => setEditSocial({ id: 0, platform: "", link: "", active: true })}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {socialMedia.map((social, idx) => {
+            const Icon = social.icon || FaGlobe;
+            return (
+              <LuxuryCard key={social.id} delay={0.2 + (idx * 0.05)} className={cn("flex flex-col h-full", !social.active && "opacity-60")}>
+                <div className="flex justify-between items-start mb-6">
+                  <div className={cn("p-3 rounded-lg bg-white/5", social.active ? "text-yellow-500" : "text-gray-500")}>
+                    <Icon size={24} />
+                  </div>
+                  <div className={`w-2 h-2 rounded-full ${social.active ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-red-500'}`} />
+                </div>
+
+                <h4 className="text-lg font-bold text-white mb-1">{social.platform}</h4>
+                <a href={social.link} className="text-xs text-gray-500 truncate hover:text-yellow-500 transition-colors mb-6 block" target="_blank">{social.link}</a>
+
+                <div className="mt-auto grid grid-cols-2 gap-2">
+                  <ActionButton
+                    icon={FaPen}
+                    variant="dark"
+                    onClick={() => setEditSocial({ ...social })}
+                    className="justify-center"
+                  />
+                  <ActionButton
+                    icon={!social.active ? FaCheck : FaTimes}
+                    variant={!social.active ? "success" : "danger"}
+                    onClick={() => toggleSocialActive(social.id)}
+                    className="justify-center"
+                  />
+                </div>
+              </LuxuryCard>
+            );
+          })}
+        </div>
+
+      </main>
+
+      {/* --- MODALS --- */}
+
+      {/* Contact Info Modal */}
+      <Modal isOpen={!!editInfo} onClose={() => setEditInfo(null)} title={`Edit ${editInfo ? infoLabels[editInfo.field] : ''}`}>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Content</label>
+            {editInfo?.field === 'hours' || editInfo?.field === 'address' ? (
+              <textarea
+                value={editInfo?.value || ''}
+                onChange={e => setEditInfo({ ...editInfo, value: e.target.value })}
+                className="w-full bg-[#050505] border border-white/10 rounded-xl p-4 text-white focus:border-yellow-500 outline-none transition-colors min-h-[120px] resize-none"
+              />
+            ) : (
+              <input
+                value={editInfo?.value || ''}
+                onChange={e => setEditInfo({ ...editInfo, value: e.target.value })}
+                className="w-full bg-[#050505] border border-white/10 rounded-xl p-4 text-white focus:border-yellow-500 outline-none transition-colors"
+              />
+            )}
+          </div>
+          <ActionButton label="Save Changes" onClick={handleInfoSave} className="w-full justify-center py-4" />
+        </div>
+      </Modal>
+
+      {/* Social Modal */}
+      <Modal isOpen={!!editSocial} onClose={() => setEditSocial(null)} title={editSocial?.id === 0 ? "New Channel" : "Edit Channel"}>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-500 uppercase">Platform</label>
+              <select
+                value={editSocial?.platform || ''}
+                onChange={e => setEditSocial({ ...editSocial, platform: e.target.value })}
+                className="w-full bg-[#050505] border border-white/10 rounded-xl p-3 text-white focus:border-yellow-500 outline-none"
+              >
+                <option value="">Select...</option>
+                {Object.keys(AVAILABLE_PLATFORMS).map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-500 uppercase">Visibility</label>
+              <button
+                onClick={() => setEditSocial({ ...editSocial, active: !editSocial.active })}
+                className={cn(
+                  "w-full p-3 rounded-xl border font-bold text-sm transition-all",
+                  editSocial?.active ? "border-green-500/30 bg-green-500/10 text-green-500" : "border-red-500/30 bg-red-500/10 text-red-500"
+                )}
+              >
+                {editSocial?.active ? "Active" : "Hidden"}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-500 uppercase">URL Link</label>
+            <input
+              value={editSocial?.link || ''}
+              onChange={e => setEditSocial({ ...editSocial, link: e.target.value })}
+              className="w-full bg-[#050505] border border-white/10 rounded-xl p-4 text-white focus:border-yellow-500 outline-none"
+              placeholder="https://..."
+            />
+          </div>
+
+          <ActionButton
+            label={editSocial?.id === 0 ? "Create Channel" : "Update Channel"}
+            onClick={handleSocialSave}
+            className="w-full justify-center py-4"
+            disabled={!editSocial?.platform}
+          />
+        </div>
+      </Modal>
+
+    </div>
+  );
 }

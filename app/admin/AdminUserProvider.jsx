@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { decodeJWT } from "@/lib/utils";
+import { getApiUrl } from "@/lib/api-config";
 
 export const AdminUserContext = createContext(null);
 
@@ -11,55 +12,69 @@ export function AdminUserProvider({ user: initialUser, children }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // If user is already set, do nothing (unless we want to re-verify)
-    // But for static export, initialUser is likely null.
-    if (user) return;
+    // Note: Navbar fetches /api/auth/me directly without pre-checking token.
+    // We should do the same to support HttpOnly cookies where document.cookie is empty.
 
-    const token = localStorage.getItem('token'); // Or check cookie if you sync them
-    // Note: The original server-side code used cookies. 
-    // If your login sets a cookie httpOnly, client JS can't read it.
-    // Assuming the login also sets localStorage or a readable cookie.
-
-    // Fallback to checking document.cookie if localStorage is empty
-    let tokenToVerify = token;
-    if (!tokenToVerify) {
-      const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
-      if (match) tokenToVerify = match[2];
-    }
-
-    if (tokenToVerify) {
-      const decoded = decodeJWT(tokenToVerify);
-      if (decoded) {
-        // Check expiration if 'exp' is in payload
-        if (decoded.exp && Date.now() >= decoded.exp * 1000) {
-          console.log("Token expired");
-          handleLogout();
-          return;
-        }
-        setUser(decoded);
-      } else {
-        handleLogout();
+    // Attempt to read token for optimistic/fallback use, but don't block fetch
+    let clientToken = null;
+    if (typeof window !== 'undefined') {
+      clientToken = localStorage.getItem('token');
+      if (!clientToken) {
+        const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
+        if (match) clientToken = match[2];
       }
-    } else {
-      // No token found, user is null.
-      // Redirect to login if on a protected page?
-      // Let's rely on the pages/layout logic or implement it here.
-      // Original layout redirected to /not-authorized
-      handleLogout();
     }
-  }, [user, pathname]);
+
+    // Always fetch profile
+    fetch(getApiUrl('/api/auth/me'), {
+      credentials: 'include', // Sends HttpOnly cookies
+      headers: clientToken ? { 'Authorization': `Bearer ${clientToken}` } : {}
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setUser(data.user);
+            return;
+          }
+        }
+
+        // As a fallback, if API failed but we have a valid client token, decode it
+        if (clientToken) {
+          const decoded = decodeJWT(clientToken);
+          if (decoded && (!decoded.exp || Date.now() < decoded.exp * 1000)) {
+            setUser(decoded);
+            return;
+          }
+        }
+
+        // If both failed, logout
+        handleLogout();
+      })
+      .catch(err => {
+        console.error("Auth check failed:", err);
+        // Fallback to client token if network error
+        if (clientToken) {
+          const decoded = decodeJWT(clientToken);
+          if (decoded) {
+            setUser(decoded);
+            return;
+          }
+        }
+        handleLogout();
+      });
+
+  }, [pathname]);
 
   const handleLogout = () => {
     setUser(null);
-    // Only redirect if we are in admin pages (excluding login if it was here)
     if (pathname?.startsWith('/admin')) {
-      // router.push('/admin/login'); // Or not-authorized
-      // For now, we update state. The components checking permissions will react.
+      // Optional: redirect to login
     }
   };
 
   return (
-    <AdminUserContext.Provider value={user}>
+    <AdminUserContext.Provider value={{ user, handleLogout }}>
       {children}
     </AdminUserContext.Provider>
   );

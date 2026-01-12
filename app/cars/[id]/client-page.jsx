@@ -2,12 +2,10 @@
 import { getApiUrl } from '@/lib/api-config';
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import Navbar from "@/app/components/homepage/navbar";
 import FooterSection from "@/app/components/homepage/footer";
 import GalleryModal from "@/components/ui/gallery";
 import { CalendarIcon, MessageSquare, PhoneCall, Check, ChevronLeft, ChevronRight, X, Send } from "lucide-react";
-import { useParams } from "next/navigation";
 import { decodeJWT } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -39,53 +37,53 @@ const BookingModal = React.memo(({
     // Compose car name as 'brand + model' if available
     const carName = car?.brand && car?.model ? `${car.brand} ${car.model}` : car?.title || '';
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-zinc-900 rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-[#0a0a0a] border border-[#FFD700]/20 rounded-3xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(255,215,0,0.1)]">
                 {submitSuccess ? (
-                    <div className="text-center">
-                        <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Check size={32} className="text-white" />
+                    <div className="text-center py-8">
+                        <div className="w-20 h-20 bg-gradient-to-br from-[#FFD700] to-[#B8860B] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#FFD700]/20">
+                            <Check size={40} className="text-black" />
                         </div>
-                        <h3 className="text-2xl font-bold text-white mb-2">Request Submitted!</h3>
-                        <p className="text-gray-300 mb-4">We'll contact you within 24 hours to confirm your booking.</p>
-                        <p className="text-sm text-gray-400">Closing automatically...</p>
+                        <h3 className="text-3xl font-bold text-white mb-2 font-bruno">Request Submitted!</h3>
+                        <p className="text-gray-300 mb-6 font-sans">We'll contact you within 24 hours to confirm your booking.</p>
+                        <p className="text-sm text-yellow-500/80 animate-pulse">Closing automatically...</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmitBooking}>
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-2xl font-bold text-white">Complete Your Booking</h3>
+                        <div className="flex justify-between items-center mb-8">
+                            <h3 className="text-2xl font-bold text-white font-bruno">Complete Your Booking</h3>
                             <button
                                 type="button"
                                 onClick={() => setShowBookingModal(false)}
-                                className="text-gray-400 hover:text-white"
+                                className="text-gray-400 hover:text-[#FFD700] transition-colors"
                             >
                                 <X size={24} />
                             </button>
                         </div>
 
                         {/* Booking Summary */}
-                        <div className="bg-zinc-800 rounded-lg p-4 mb-6">
-                            <h4 className="font-semibold text-white mb-2">Booking Summary</h4>
-                            <div className="space-y-2 text-sm text-gray-300">
-                                <div>Car: <span className="text-white">{carName}</span></div>
-                                <div>Dates: <span className="text-white">{formatDisplayDate(startDate)} - {formatDisplayDate(endDate)}</span></div>
-                                <div>Duration: <span className="text-white">{calculateDays()} days</span></div>
-                                <div>Rental Type: <span className="text-white capitalize">{rentalOption}</span></div>
-                                <div>Total: <span className="text-yellow-400 font-semibold">{calculatePrice()}</span></div>
+                        <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6 mb-8">
+                            <h4 className="font-bold text-[#FFD700] mb-4 uppercase tracking-wider text-xs font-bruno">Booking Summary</h4>
+                            <div className="space-y-3 text-sm text-gray-300 font-sans">
+                                <div className="flex justify-between border-b border-white/5 pb-2"><span>Car</span> <span className="text-white font-medium">{carName}</span></div>
+                                <div className="flex justify-between border-b border-white/5 pb-2"><span>Dates</span> <span className="text-white font-medium">{formatDisplayDate(startDate)} - {formatDisplayDate(endDate)}</span></div>
+                                <div className="flex justify-between border-b border-white/5 pb-2"><span>Duration</span> <span className="text-white font-medium">{calculateDays()} days</span></div>
+                                <div className="flex justify-between border-b border-white/5 pb-2"><span>Rental Type</span> <span className="text-white capitalize font-medium">{rentalOption}</span></div>
+                                <div className="flex justify-between pt-1"><span>Total</span> <span className="text-[#FFD700] font-bold text-lg font-bruno">{calculatePrice()}</span></div>
                             </div>
                         </div>
 
                         {/* Customer Information */}
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
                                     Full Name *
                                 </label>
                                 <input
                                     type="text"
                                     value={customerName}
                                     onChange={(e) => setCustomerName(e.target.value)}
-                                    className="w-full bg-zinc-700 border border-zinc-600 rounded-lg py-3 px-4 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500"
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl py-4 px-5 text-white placeholder-gray-600 focus:outline-none focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700] transition-all"
                                     placeholder="Enter your full name"
                                     required
                                     autoComplete="name"
@@ -93,14 +91,14 @@ const BookingModal = React.memo(({
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
                                     Phone Number *
                                 </label>
                                 <input
                                     type="tel"
                                     value={customerPhone}
                                     onChange={(e) => setCustomerPhone(e.target.value)}
-                                    className="w-full bg-zinc-700 border border-zinc-600 rounded-lg py-3 px-4 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500"
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl py-4 px-5 text-white placeholder-gray-600 focus:outline-none focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700] transition-all"
                                     placeholder="+971 50 123 4567"
                                     required
                                     autoComplete="tel"
@@ -108,25 +106,25 @@ const BookingModal = React.memo(({
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
                                     Additional Message
                                 </label>
                                 <textarea
                                     value={customerMessage}
                                     onChange={(e) => setCustomerMessage(e.target.value)}
-                                    rows={4}
-                                    className="w-full bg-zinc-700 border border-zinc-600 rounded-lg py-3 px-4 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 resize-none"
+                                    rows={3}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl py-4 px-5 text-white placeholder-gray-600 focus:outline-none focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700] transition-all resize-none"
                                     placeholder="Any special requests or questions..."
                                 />
                             </div>
                         </div>
 
                         {/* Submit Button */}
-                        <div className="flex gap-3 pt-4">
+                        <div className="flex gap-4 pt-8">
                             <button
                                 type="button"
                                 onClick={() => setShowBookingModal(false)}
-                                className="flex-1 py-3 px-6 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
+                                className="flex-1 py-4 px-6 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors font-medium"
                                 disabled={isSubmitting}
                             >
                                 Cancel
@@ -134,12 +132,12 @@ const BookingModal = React.memo(({
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="flex-1 py-3 px-6 bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="flex-[2] py-4 px-6 bg-gradient-to-r from-[#FFD700] via-[#FDB931] to-[#B8860B] hover:shadow-[0_0_20px_rgba(255,215,0,0.4)] text-black font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bruno transform hover:-translate-y-1"
                             >
                                 {isSubmitting ? (
                                     <>
                                         <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                                        Submitting...
+                                        Processing...
                                     </>
                                 ) : (
                                     <>
@@ -221,14 +219,13 @@ export default function CarDetailsClient({ id }) {
                 body: JSON.stringify({ carId }),
             });
             if (!res.ok) {
-                // optionally redirect to login if 401
                 return;
             }
             const data = await res.json();
             const ids = new Set((data.favorites || []).map((c) => c._id || c.id));
             setFavoriteIds(ids);
         } catch (e) {
-            // ignore errors for now
+            // ignore
         }
     };
 
@@ -244,7 +241,6 @@ export default function CarDetailsClient({ id }) {
                 console.log('Error sharing:', error);
             }
         } else {
-            // Fallback: copy to clipboard
             try {
                 await navigator.clipboard.writeText(window.location.href);
                 alert('Link copied to clipboard!');
@@ -278,7 +274,6 @@ export default function CarDetailsClient({ id }) {
 
     const handleBookNow = (e) => {
         e.preventDefault();
-        // A real implementation would check for dates first
         setShowBookingModal(true);
     };
 
@@ -286,10 +281,8 @@ export default function CarDetailsClient({ id }) {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Compose car name as 'brand + model' if available
         const carName = car?.brand && car?.model ? `${car.brand} ${car.model}` : car?.title || '';
 
-        // Get user info from JWT
         let userId = null;
         let userPhone = null;
         if (typeof window !== 'undefined') {
@@ -299,7 +292,6 @@ export default function CarDetailsClient({ id }) {
             userPhone = user?.phone || null;
         }
 
-        // Prepare the request data
         const requestData = {
             name: customerName,
             contact: customerPhone,
@@ -317,7 +309,6 @@ export default function CarDetailsClient({ id }) {
             userPhone,
         };
 
-        // Call the backend API
         const result = await submitRentalRequest(requestData);
 
         setIsSubmitting(false);
@@ -326,14 +317,13 @@ export default function CarDetailsClient({ id }) {
             setSubmitSuccess(true);
             setTimeout(() => {
                 setShowBookingModal(false);
-                setSubmitSuccess(false); // Reset for next time
+                setSubmitSuccess(false);
             }, 3000);
         } else {
             alert("Failed to submit request: " + (result.error || "Unknown error"));
         }
     };
 
-    // Helper function to create date without timezone issues
     function createDateOnly(year, month, date) {
         const d = new Date();
         d.setFullYear(year, month, date);
@@ -341,7 +331,6 @@ export default function CarDetailsClient({ id }) {
         return d;
     }
 
-    // Helper function to get today's date without time
     function getTodayDate() {
         const today = new Date();
         return createDateOnly(today.getFullYear(), today.getMonth(), today.getDate());
@@ -375,12 +364,10 @@ export default function CarDetailsClient({ id }) {
     }
 
     function isDateAvailable(date) {
-        const dateStr = formatDateToString(date); // 'YYYY-MM-DD'
         // Block out unavailable dates from car.unavailableDates
         if (car?.unavailableDates && Array.isArray(car.unavailableDates)) {
             for (const range of car.unavailableDates) {
                 if (range.from && range.to) {
-                    // Always compare only the date part
                     const from = new Date(range.from.length > 10 ? range.from.slice(0, 10) : range.from + 'T00:00:00');
                     const to = new Date(range.to.length > 10 ? range.to.slice(0, 10) : range.to + 'T00:00:00');
                     if (date >= from && date <= to) {
@@ -434,7 +421,7 @@ export default function CarDetailsClient({ id }) {
         const dayNamesRow = (
             <div className="grid grid-cols-7 mb-2">
                 {dayNames.map(day => (
-                    <div key={day} className="text-center text-xs text-gray-400 py-1">{day}</div>
+                    <div key={day} className="text-center text-xs text-gray-500 font-bold uppercase tracking-wide py-1">{day}</div>
                 ))}
             </div>
         );
@@ -449,26 +436,25 @@ export default function CarDetailsClient({ id }) {
             const isAvailable = isDateAvailable(currentDate);
             const isSelectable = isDateSelectable(currentDate);
             const isToday = dateStr === formatDateToString(getTodayDate());
-            let cellClasses = "p-2 text-center rounded-full mx-auto w-8 h-8 flex items-center justify-center text-sm transition-colors ";
+            let cellClasses = "p-2 text-center rounded-full mx-auto w-9 h-9 flex items-center justify-center text-sm transition-all duration-200 ";
             if (!isAvailable) {
-                cellClasses += "line-through bg-red-500 bg-opacity-30 font-bold cursor-not-allowed ";
+                cellClasses += "line-through text-red-500/50 cursor-not-allowed ";
             } else if (isSelected) {
-                cellClasses += "bg-yellow-500 text-black font-bold ";
+                cellClasses += "bg-[#FFD700] text-black font-bold shadow-lg shadow-yellow-500/30 scale-110 z-10 ";
             } else if (inSelectedRange) {
-                cellClasses += "bg-yellow-200 bg-opacity-20 text-yellow-200 ";
+                cellClasses += "bg-[#FFD700]/20 text-[#FFD700] ";
             } else if (isSelectable) {
-                cellClasses += "hover:bg-yellow-600 hover:text-black cursor-pointer text-green-200 ";
+                cellClasses += "hover:bg-[#FFD700] hover:text-black cursor-pointer text-gray-300 ";
             } else {
-                cellClasses += "text-gray-500 cursor-not-allowed ";
+                cellClasses += "text-zinc-600 cursor-not-allowed ";
             }
             if (isToday && !isSelected) {
-                cellClasses += "ring-2 ring-blue-400 ";
+                cellClasses += "ring-1 ring-[#FFD700] text-[#FFD700] ";
             }
             days.push(
                 <div
                     key={day}
                     className={cellClasses}
-                    style={!isAvailable ? { color: '#ef4444', fontWeight: 'bold' } : {}}
                     onClick={() => {
                         if (isSelectable) {
                             handleDateSelect(currentDate, selectedCalendar);
@@ -488,44 +474,40 @@ export default function CarDetailsClient({ id }) {
             );
         }
         return (
-            <div className="bg-zinc-800 rounded-lg p-4 shadow-xl border border-zinc-700 w-full max-w-sm">
-                <div className="flex justify-between items-center mb-4">
+            <div className="bg-[#0a0a0a] rounded-2xl p-6 shadow-2xl border border-[#FFD700]/20 w-full max-w-sm absolute top-full left-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
                     <button
                         onClick={(e) => { e.preventDefault(); changeMonth(-1); }}
                         type="button"
-                        className="p-1 rounded-full hover:bg-zinc-700"
+                        className="p-1 rounded-full hover:bg-white/5 hover:text-[#FFD700] transition-colors"
                     >
                         <ChevronLeft size={20} />
                     </button>
-                    <h3 className="font-medium">
+                    <h3 className="font-bruno text-[#FFD700] text-lg">
                         {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </h3>
                     <button
                         onClick={(e) => { e.preventDefault(); changeMonth(1); }}
                         type="button"
-                        className="p-1 rounded-full hover:bg-zinc-700"
+                        className="p-1 rounded-full hover:bg-white/5 hover:text-[#FFD700] transition-colors"
                     >
                         <ChevronRight size={20} />
                     </button>
                 </div>
                 {dayNamesRow}
                 {weeks}
-                <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                    <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-green-500 bg-opacity-50 mr-1"></div>
-                        <span>Available</span>
+                <div className="mt-6 flex flex-wrap gap-4 text-xs justify-center pt-4 border-t border-white/5">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-white/50"></div>
+                        <span className="text-gray-400">Available</span>
                     </div>
-                    <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-red-500 bg-opacity-50 mr-1"></div>
-                        <span>Unavailable</span>
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-[#FFD700]"></div>
+                        <span className="text-gray-400">Selected</span>
                     </div>
-                    <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-yellow-500 mr-1"></div>
-                        <span>Selected</span>
-                    </div>
-                    <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full border-2 border-blue-400 mr-1"></div>
-                        <span>Today</span>
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full border border-[#FFD700]"></div>
+                        <span className="text-gray-400">Today</span>
                     </div>
                 </div>
             </div>
@@ -581,37 +563,35 @@ export default function CarDetailsClient({ id }) {
         return price;
     }
 
-    // Helper to find the nearest available date after today
     function getNearestAvailableDate() {
         const today = getTodayDate();
         let date = new Date(today);
-        // Search up to 2 years ahead to avoid infinite loop
         for (let i = 0; i < 730; i++) {
+            const dateStr = formatDateToString(date);
             if (isDateAvailable(date)) {
-                return new Date(date); // Return a copy
+                return new Date(date);
             }
             date.setDate(date.getDate() + 1);
         }
-        return null; // No available date found
+        return null;
     }
 
     if (loading) return (
-        <div className="bg-black min-h-screen flex items-center justify-center">
+        <div className="bg-[#050505] min-h-screen flex items-center justify-center">
             <div className="text-center">
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full mx-auto mb-8"
+                    className="w-20 h-20 border-4 border-[#FFD700] border-t-transparent rounded-full mx-auto mb-8 shadow-[0_0_30px_rgba(255,215,0,0.3)]"
                 />
-                <h2 className="text-3xl font-bold text-white mb-4 font-bruno">Loading Car Details</h2>
-                <p className="text-gray-400 text-lg">Please wait while we fetch the details...</p>
+                <h2 className="text-4xl font-bold text-white mb-4 font-bruno tracking-wide">Loading Luxury</h2>
+                <p className="text-gray-500 text-lg font-light tracking-widest uppercase">Preparing your experience...</p>
             </div>
         </div>
     );
-    if (error) return <div className="bg-black text-white text-center p-12 text-xl text-red-500">Error: {error}</div>;
-    if (!car) return <div className="bg-black text-white text-center p-12 text-xl">Car not found.</div>;
+    if (error) return <div className="bg-[#050505] min-h-screen flex items-center justify-center text-red-500 text-xl font-bruno">Error: {error}</div>;
+    if (!car) return <div className="bg-[#050505] min-h-screen flex items-center justify-center text-white text-xl font-bruno">Vehicle not found.</div>;
 
-    // A more robust way to get specs, falling back to array order
     const carSpecs = [
         { label: "Engine", value: car.specs?.find(s => s.icon?.includes('engine'))?.label || car.specs?.[0]?.label },
         { label: "Power", value: car.specs?.find(s => s.icon?.includes('horse'))?.label ? `${car.specs.find(s => s.icon?.includes('horse')).label} HP` : (car.specs?.[1]?.label ? `${car.specs[1].label} HP` : null) },
@@ -624,94 +604,108 @@ export default function CarDetailsClient({ id }) {
     ].filter(spec => spec.value);
 
     return (
-        <div className="bg-black text-white min-h-screen font-sans relative">
+        <div className="bg-[#050505] text-white min-h-screen font-sans relative selection:bg-[#FFD700] selection:text-black">
+            {/* Texture Overlay */}
+            <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-0"></div>
+
             {/* Header */}
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <main className="max-w-[1600px] mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
                 {/* Car Title and Availability */}
-                <div className="mb-6">
-                    <div className="flex items-center gap-4 mb-2">
-                        <img
-                            src={car?.logo}
-                            alt={car?.brand}
-                            style={{ height: "48px", width: "auto" }}
-                            className="rounded"
-                        />
-                        <span className="text-3xl md:text-4xl font-bruno">
-                            {car?.brand} {car?.model}
-                        </span>
+                <div className="mb-10 mt-6">
+                    <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                        <div className="flex items-center gap-4">
+                            <img
+                                src={car?.logo}
+                                alt={car?.brand}
+                                style={{ height: "56px", width: "auto" }}
+                                className="rounded-xl bg-white/5 p-2 backdrop-blur-sm border border-white/10"
+                            />
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bruno text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 drop-shadow-sm">
+                                {car?.brand} <span className="text-[#FFD700]">{car?.model}</span>
+                            </h1>
+                        </div>
                     </div>
-                    <div className="inline-flex items-center mt-2 bg-yellow-600 bg-opacity-20 px-3 py-1 rounded-lg">
-                        <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                    <div className="inline-flex items-center bg-white/[0.03] border border-white/5 px-4 py-2 rounded-full backdrop-blur-sm">
+                        <div className="w-2 h-2 rounded-full bg-[#00ff88] mr-3 shadow-[0_0_10px_#00ff88]"></div>
                         {(() => {
                             const nearest = getNearestAvailableDate();
                             return nearest ? (
-                                <span className="text-green-400 font-medium">
-                                    Available on {formatDisplayDate(formatDateToString(nearest))}
+                                <span className="text-[#00ff88] font-medium tracking-wide text-sm font-mono uppercase">
+                                    Available from {formatDisplayDate(formatDateToString(nearest))}
                                 </span>
                             ) : (
-                                <span className="text-red-400 font-medium">No available dates</span>
+                                <span className="text-red-400 font-medium tracking-wide text-sm font-mono uppercase">Currently Unavailable</span>
                             );
                         })()}
                     </div>
                 </div>
 
                 {/* Image Gallery */}
-                <div className="relative mb-12">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="md:col-span-2 h-96">
+                <div className="relative mb-16 isolate z-0 overflow-hidden rounded-3xl">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:h-[500px]">
+                        {/* Main Image */}
+                        <div className="md:col-span-2 relative overflow-hidden rounded-3xl border border-white/5 shadow-2xl aspect-[4/3] md:aspect-auto md:h-full bg-[#050505] group">
                             <img
                                 src={car?.mainImage || (car?.galleryImages && car.galleryImages[0])}
                                 alt={car?.title}
-                                className="w-full h-full object-cover rounded-lg"
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
                         </div>
-                        <div className="grid grid-rows-2 gap-3 h-96">
+
+                        {/* Side Images */}
+                        <div className="grid grid-cols-2 md:grid-rows-2 gap-4 md:h-full">
                             {(car?.galleryImages || []).slice(0, 2).map((img, idx) => (
-                                <div key={idx} className="h-full">
+                                <div key={idx} className="relative overflow-hidden rounded-3xl border border-white/5 aspect-[4/3] md:aspect-auto md:h-full bg-[#050505] group">
                                     <img
                                         src={img}
                                         alt={`${car?.title} view ${idx + 1}`}
-                                        className="w-full h-full object-cover rounded-lg"
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                     />
                                 </div>
                             ))}
                         </div>
                     </div>
-                    <button
-                        className="absolute right-4 bottom-4 bg-yellow-600 hover:bg-yellow-700 transition-colors duration-300 text-black font-bruno py-2 px-4 rounded-lg flex items-center"
-                        onClick={() => setShowGallery(true)}
-                    >
-                        VIEW ALL IMAGES
-                    </button>
 
-                    {/* Favorite and Share Buttons */}
-                    <div className="absolute right-4 bottom-16 flex flex-col gap-2">
-                        {/* Favorite Button */}
+                    <div className="absolute bottom-6 right-6 flex items-center gap-3 z-10">
+                        <button
+                            className="bg-black/40 backdrop-blur-md border border-white/10 hover:bg-[#FFD700] hover:text-black hover:border-[#FFD700] transition-all duration-300 text-white font-bruno py-3 px-6 rounded-2xl flex items-center gap-2 uppercase tracking-wider text-sm shadow-xl"
+                            onClick={() => setShowGallery(true)}
+                        >
+                            <div className="w-2 h-2 bg-current rounded-full"></div>
+                            View Gallery
+                        </button>
+                    </div>
+
+                    {/* Action Buttons Overlay */}
+                    <div className="absolute top-6 right-6 flex flex-col gap-3 z-10">
                         <button
                             title="Toggle favorite"
                             aria-pressed={favoriteIds.has(car?._id)}
                             onClick={(e) => { e.stopPropagation(); toggleFavorite(car?._id); }}
-                            className="bg-black/60 hover:bg-black/80 p-3 rounded-full transition-colors duration-300"
+                            className={`p-4 rounded-full transition-all duration-300 backdrop-blur-md border border-white/10 shadow-xl ${favoriteIds.has(car?._id)
+                                ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500 border-red-500/30'
+                                : 'bg-black/40 hover:bg-white/10 text-white hover:border-white/30'
+                                }`}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-6 w-6">
                                 <path
                                     d="M12 21s-6.716-4.238-9.193-6.716C.804 12.28.5 9.5 2.343 7.657a5 5 0 017.071 0L12 10.243l2.586-2.586a5 5 0 017.071 7.071C18.716 16.762 12 21 12 21z"
-                                    className={favoriteIds.has(car?._id) ? 'fill-red-500' : 'fill-transparent'}
+                                    className={favoriteIds.has(car?._id) ? 'fill-current' : 'fill-transparent'}
                                     strokeWidth="2"
                                     stroke="currentColor"
                                 />
                             </svg>
                         </button>
 
-                        {/* Share Button */}
                         <button
                             title="Share this car"
                             onClick={handleShare}
-                            className="bg-black/60 hover:bg-black/80 p-3 rounded-full transition-colors duration-300"
+                            className="p-4 rounded-full bg-black/40 hover:bg-white/10 text-white border border-white/10 hover:border-white/30 transition-all duration-300 backdrop-blur-md shadow-xl"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-6 w-6 fill-current">
                                 <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
                             </svg>
                         </button>
@@ -726,299 +720,267 @@ export default function CarDetailsClient({ id }) {
                 </div>
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 relative z-10 transition-all">
                     {/* Left Column: Car Details */}
-                    <div className="lg:col-span-2 space-y-12">
+                    <div className="lg:col-span-2 space-y-16">
+
                         {/* Car Description */}
-                        <section>
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center">
-                                    <div className="w-12 h-1.5 rounded-full bg-yellow-600 mr-4"></div>
-                                    <h2 className="text-2xl md:text-3xl font-bruno">About This Car</h2>
-                                </div>
-
-                                {/* Favorite and Share Buttons - Desktop */}
-                                <div className="hidden md:flex items-center gap-3">
-                                    {/* Favorite Button */}
-                                    <button
-                                        title="Toggle favorite"
-                                        aria-pressed={favoriteIds.has(car?._id)}
-                                        onClick={(e) => { e.stopPropagation(); toggleFavorite(car?._id); }}
-                                        className={`p-3 rounded-full transition-colors duration-300 ${favoriteIds.has(car?._id)
-                                            ? 'bg-red-500/20 hover:bg-red-500/30'
-                                            : 'bg-gray-800/60 hover:bg-gray-700/80'
-                                            }`}
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
-                                            <path
-                                                d="M12 21s-6.716-4.238-9.193-6.716C.804 12.28.5 9.5 2.343 7.657a5 5 0 017.071 0L12 10.243l2.586-2.586a5 5 0 017.071 7.071C18.716 16.762 12 21 12 21z"
-                                                className={favoriteIds.has(car?._id) ? 'fill-red-500' : 'fill-transparent'}
-                                                strokeWidth="2"
-                                                stroke="currentColor"
-                                            />
-                                        </svg>
-                                    </button>
-
-                                    {/* Share Button */}
-                                    <button
-                                        title="Share this car"
-                                        onClick={handleShare}
-                                        className="bg-gray-800/60 hover:bg-gray-700/80 p-3 rounded-full transition-colors duration-300"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
-                                            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
-                                        </svg>
-                                    </button>
-                                </div>
+                        <section className="animate-in slide-in-from-bottom-4 duration-500 delay-100">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-16 h-1 bg-[#FFD700] rounded-full shadow-[0_0_10px_#FFD700]"></div>
+                                <h2 className="text-3xl md:text-4xl font-bruno text-white uppercase tracking-wider">About This Car</h2>
                             </div>
 
-                            {/* Favorite and Share Buttons - Mobile */}
-                            <div className="md:hidden flex items-center gap-3 mb-4">
-                                <button
-                                    title="Toggle favorite"
-                                    aria-pressed={favoriteIds.has(car?._id)}
-                                    onClick={(e) => { e.stopPropagation(); toggleFavorite(car?._id); }}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-300 ${favoriteIds.has(car?._id)
-                                        ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                                        : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80'
-                                        }`}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4">
-                                        <path
-                                            d="M12 21s-6.716-4.238-9.193-6.716C.804 12.28.5 9.5 2.343 7.657a5 5 0 017.071 0L12 10.243l2.586-2.586a5 5 0 017.071 7.071C18.716 16.762 12 21 12 21z"
-                                            className={favoriteIds.has(car?._id) ? 'fill-red-500' : 'fill-transparent'}
-                                            strokeWidth="2"
-                                            stroke="currentColor"
-                                        />
-                                    </svg>
-                                    <span className="text-sm font-medium">
-                                        {favoriteIds.has(car?._id) ? 'Favorited' : 'Favorite'}
-                                    </span>
-                                </button>
-
-                                <button
-                                    title="Share this car"
-                                    onClick={handleShare}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-800/60 hover:bg-gray-700/80 rounded-lg text-gray-300 transition-colors duration-300"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
-                                    </svg>
-                                    <span className="text-sm font-medium">Share</span>
-                                </button>
+                            {/* Mobile Actions Overlay */}
+                            <div className="md:hidden flex gap-3 mb-6">
+                                {/* Replicated actions for mobile if needed, but sticky functionality usually covers it */}
                             </div>
 
-                            <div className="bg-zinc-900 rounded-xl p-6 text-gray-300 leading-relaxed border border-zinc-800">
-                                <p>{car.description || "No description avaiable."}</p>
+                            <div className="bg-white/[0.03] border border-white/5 p-8 rounded-3xl backdrop-blur-sm">
+                                <p className="text-gray-300 text-lg md:text-xl font-light leading-relaxed font-sans">
+                                    {car?.description || 'No description available for this exclusive vehicle.'}
+                                </p>
                             </div>
                         </section>
 
-                        {/* Specifications */}
-                        <section>
-                            <div className="flex items-center mb-6">
-                                <div className="w-12 h-1.5 rounded-full bg-yellow-600 mr-4"></div>
-                                <h2 className="text-2xl md:text-3xl font-bruno">Specifications</h2>
+                        {/* Car Specs */}
+                        <section className="animate-in slide-in-from-bottom-4 duration-500 delay-200">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-16 h-1 bg-[#FFD700] rounded-full shadow-[0_0_10px_#FFD700]"></div>
+                                <h2 className="text-3xl md:text-4xl font-bruno text-white uppercase tracking-wider">Specifications</h2>
                             </div>
-
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {carSpecs.map((spec, index) => (
-                                    <div key={index} className="bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex flex-col items-center text-center hover:border-yellow-600 transition-colors duration-300">
-                                        <span className="text-gray-400 text-sm mb-1">{spec.label}</span>
-                                        <span className="text-lg font-bold text-white">{spec.value}</span>
+                                {carSpecs.map((spec, idx) => (
+                                    <div key={idx} className="group bg-white/[0.02] border border-white/5 rounded-2xl p-6 text-center hover:bg-[#FFD700]/10 hover:border-[#FFD700]/30 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#FFD700]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                        <div className="text-[#FFD700] text-xs uppercase tracking-[0.2em] mb-2 opacity-80">{spec.label}</div>
+                                        <div className="font-bruno text-xl md:text-2xl text-white group-hover:text-[#FFD700] transition-colors">{spec.value}</div>
                                     </div>
                                 ))}
                             </div>
                         </section>
 
-                        {/* Features */}
-                        <section>
-                            <div className="flex items-center mb-6">
-                                <div className="w-12 h-1.5 rounded-full bg-yellow-600 mr-4"></div>
-                                <h2 className="text-2xl md:text-3xl font-bruno">Features</h2>
+                        {/* Requirements */}
+                        <section className="animate-in slide-in-from-bottom-4 duration-500 delay-300">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-16 h-1 bg-[#FFD700] rounded-full shadow-[0_0_10px_#FFD700]"></div>
+                                <h2 className="text-3xl md:text-4xl font-bruno text-white uppercase tracking-wider">Rental Requirements</h2>
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {(car?.features || []).map((feature, index) => (
-                                    <div key={index} className="flex items-center bg-zinc-900 p-3 rounded-lg border border-zinc-800">
-                                        <Check className="text-yellow-500 mr-3" size={20} />
-                                        <span className="text-gray-300">{feature}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        {/* FAQ Section */}
-                        {(car?.faqs && car.faqs.length > 0) && (
-                            <section>
-                                <div className="flex items-center mb-6">
-                                    <div className="w-12 h-1.5 rounded-full bg-yellow-600 mr-4"></div>
-                                    <h2 className="text-2xl md:text-3xl font-bruno">FAQ</h2>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {car.faqs.map((faq, idx) => (
-                                        <div key={idx} className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                                            <button
-                                                onClick={() => toggleFaq(idx)}
-                                                className="w-full flex justify-between items-center p-4 text-left font-bold text-white hover:bg-zinc-800 transition-colors"
-                                            >
-                                                {faq.question}
-                                                {showFaq[idx] ? <ChevronLeft className="rotate-90 transition-transform" /> : <ChevronRight className="transition-transform" />}
-                                            </button>
-
-                                            {showFaq[idx] && (
-                                                <div className="p-4 pt-0 text-gray-400 border-t border-zinc-800 mt-2">
-                                                    {faq.answer}
-                                                </div>
-                                            )}
-                                        </div>
+                            <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-8 hover:border-[#FFD700]/20 transition-colors">
+                                <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                                    {(car?.rentalRequirements && car.rentalRequirements.length > 0
+                                        ? car.rentalRequirements
+                                        : [
+                                            "Minimum 21 years old",
+                                            "Valid UAE Driving License or International Driving Permit",
+                                            "Passport or Emirates ID",
+                                            "Security Deposit (10,000 AED via credit card)",
+                                            "Clean driving record"
+                                        ]
+                                    ).map((req, idx) => (
+                                        <li key={idx} className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors">
+                                            <div className="bg-[#FFD700]/10 p-2 rounded-full text-[#FFD700]">
+                                                <Check size={18} />
+                                            </div>
+                                            <span className="font-sans text-gray-300 pt-1">{req}</span>
+                                        </li>
                                     ))}
-                                </div>
-                            </section>
-                        )}
+                                </ul>
+                            </div>
+                        </section>
+
+                        {/* FAQs */}
+                        <section className="animate-in slide-in-from-bottom-4 duration-500 delay-400">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-16 h-1 bg-[#FFD700] rounded-full shadow-[0_0_10px_#FFD700]"></div>
+                                <h2 className="text-3xl md:text-4xl font-bruno text-white uppercase tracking-wider">Frequently Asked Questions</h2>
+                            </div>
+                            <div className="space-y-4">
+                                {car?.faqs.map((faq, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="group bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden hover:border-[#FFD700]/30 transition-all duration-300"
+                                    >
+                                        <button
+                                            className="w-full text-left p-6 flex justify-between items-center"
+                                            onClick={() => toggleFaq(idx)}
+                                        >
+                                            <span className="font-sans font-medium text-lg text-white group-hover:text-[#FFD700] transition-colors">{faq.question}</span>
+                                            <span className={`text-[#FFD700] text-2xl transition-transform duration-300 ${showFaq[idx] ? 'rotate-45' : ''}`}>+</span>
+                                        </button>
+                                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showFaq[idx] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                            <div className="p-6 pt-0 text-gray-400 font-sans border-t border-white/5 leading-relaxed">
+                                                {faq.answer}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
                     </div>
 
-                    {/* Right Column: Booking Widget */}
-                    <div className="relative">
-                        <div className="lg:sticky lg:top-24 space-y-6">
-                            <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 shadow-xl">
-                                <div className="text-center mb-6 border-b border-zinc-800 pb-6">
-                                    <p className="text-gray-400 mb-1">Daily Rate</p>
-                                    <div className="flex items-baseline justify-center">
-                                        <span className="text-3xl font-bold text-yellow-500">
-                                            AED {parseInt(car?.pricing?.daily).toLocaleString()}
+                    {/* Right Column: Booking Form */}
+                    <div className="lg:col-span-1 relative z-20">
+                        <div className="bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 sticky top-28 shadow-2xl shadow-black/50">
+                            {/* Agency Logo */}
+                            <div className="flex flex-col items-center justify-center mb-8 pb-8 border-b border-white/10">
+                                <Image
+                                    src={logoData?.navbarLogo || "/img/noblelogo.png"}
+                                    alt={logoData?.companyName || "Noble Road Luxury Car Rental"}
+                                    width={140}
+                                    height={80}
+                                    className="mb-4 drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]"
+                                />
+                                <div className="text-center">
+                                    <h3 className="font-bruno text-xl text-white tracking-widest uppercase">{logoData?.companyName || "Noble Road"}</h3>
+                                    <p className="text-xs text-[#FFD700] tracking-[0.3em] uppercase mt-1">Luxury Car Rental</p>
+                                </div>
+                            </div>
+
+                            {/* Pricing Options */}
+                            <div className="grid grid-cols-3 gap-2 mb-8 bg-black/40 p-1 rounded-2xl border border-white/5">
+                                {[
+                                    { id: "daily", label: "Daily", price: car?.pricing?.daily },
+                                    { id: "weekly", label: "Weekly", price: car?.pricing?.weekly },
+                                    { id: "monthly", label: "Monthly", price: car?.pricing?.monthly }
+                                ].map(option => (
+                                    <button
+                                        key={option.id}
+                                        className={`p-3 text-center rounded-xl transition-all duration-300 ${rentalOption === option.id
+                                            ? "bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/20 scale-105 font-bold"
+                                            : "text-gray-400 hover:text-white hover:bg-white/5"
+                                            }`}
+                                        onClick={() => setRentalOption(option.id)}
+                                    >
+                                        <div className="text-[10px] uppercase tracking-wider mb-1 opacity-80">{option.label}</div>
+                                        <div className="font-bruno text-sm whitespace-nowrap">{option.price ? <><span className={`text-[10px] mr-1 ${rentalOption === option.id ? "text-black/60" : "text-gray-400"}`}>AED</span>{option.price}</> : 'N/A'}</div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Booking Form */}
+                            <form className="space-y-5">
+                                <div className="space-y-2 relative" id="start-calendar-container">
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide ml-1">Pick-up Date</label>
+                                    <div
+                                        className="w-full p-4 rounded-xl bg-white/[0.03] border border-white/10 hover:border-[#FFD700]/50 hover:bg-white/[0.05] transition-all flex justify-between items-center cursor-pointer group"
+                                        onClick={() => {
+                                            setShowStartCalendar(!showStartCalendar);
+                                            setShowEndCalendar(false);
+                                            setSelectedCalendar('start');
+                                            setCurrentMonth(new Date());
+                                        }}
+                                    >
+                                        <span className={`font-medium ${startDate ? "text-[#FFD700]" : "text-gray-500 group-hover:text-gray-300"}`}>
+                                            {startDate ? formatDisplayDate(startDate) : "Select Date"}
                                         </span>
-                                        <span className="text-gray-500 ml-1">/ day</span>
-                                    </div>
-                                </div>
-
-                                {/* Rental Option Selector */}
-                                <div className="grid grid-cols-3 gap-2 mb-6 bg-black p-1 rounded-lg">
-                                    {['daily', 'weekly', 'monthly'].map((opt) => (
-                                        <button
-                                            key={opt}
-                                            onClick={() => setRentalOption(opt)}
-                                            className={`py-2 text-xs md:text-sm font-medium rounded-md capitalize transition-colors ${rentalOption === opt ? 'bg-zinc-800 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'
-                                                }`}
-                                        >
-                                            {opt}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* Date Selection */}
-                                <div className="space-y-4 mb-6 relative">
-                                    <div>
-                                        <label className="block text-sm text-gray-400 mb-1">Pick-up Date</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setShowStartCalendar(!showStartCalendar);
-                                                setShowEndCalendar(false);
-                                                setSelectedCalendar('start');
-                                            }}
-                                            className="w-full bg-black border border-zinc-700 rounded-lg py-3 px-4 text-left flex justify-between items-center hover:border-yellow-600 transition-colors"
-                                        >
-                                            <span className={startDate ? "text-white" : "text-gray-500"}>
-                                                {startDate ? formatDisplayDate(startDate) : "Select date"}
-                                            </span>
-                                            <CalendarIcon size={18} className="text-yellow-500" />
-                                        </button>
-                                        {showStartCalendar && (
-                                            <div className="absolute top-16 left-0 z-20 w-full">
-                                                {renderCalendar()}
-                                            </div>
-                                        )}
+                                        <CalendarIcon className={`group-hover:text-[#FFD700] transition-colors ${startDate ? "text-[#FFD700]" : "text-gray-600"}`} size={20} />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm text-gray-400 mb-1">Return Date</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
+                                    {showStartCalendar && renderCalendar()}
+                                </div>
+
+                                <div className="space-y-2 relative" id="end-calendar-container">
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide ml-1">Return Date</label>
+                                    <div
+                                        className={`w-full p-4 rounded-xl bg-white/[0.03] border border-white/10 flex justify-between items-center transition-all ${startDate
+                                            ? "cursor-pointer hover:border-[#FFD700]/50 hover:bg-white/[0.05] group"
+                                            : "opacity-50 cursor-not-allowed"
+                                            }`}
+                                        onClick={() => {
+                                            if (startDate) {
                                                 setShowEndCalendar(!showEndCalendar);
                                                 setShowStartCalendar(false);
                                                 setSelectedCalendar('end');
-                                            }}
-                                            className="w-full bg-black border border-zinc-700 rounded-lg py-3 px-4 text-left flex justify-between items-center hover:border-yellow-600 transition-colors"
-                                        >
-                                            <span className={endDate ? "text-white" : "text-gray-500"}>
-                                                {endDate ? formatDisplayDate(endDate) : "Select date"}
-                                            </span>
-                                            <CalendarIcon size={18} className="text-yellow-500" />
-                                        </button>
-                                        {showEndCalendar && (
-                                            <div className="absolute top-36 left-0 z-20 w-full">
-                                                {renderCalendar()}
-                                            </div>
-                                        )}
+                                                setCurrentMonth(new Date(startDate));
+                                            }
+                                        }}
+                                    >
+                                        <span className={`font-medium ${endDate ? "text-[#FFD700]" : "text-gray-500 group-hover:text-gray-300"}`}>
+                                            {endDate ? formatDisplayDate(endDate) : "Select Date"}
+                                        </span>
+                                        <CalendarIcon className={`group-hover:text-[#FFD700] transition-colors ${endDate ? "text-[#FFD700]" : "text-gray-600"}`} size={20} />
                                     </div>
+
+                                    {showEndCalendar && renderCalendar()}
                                 </div>
 
-                                {/* Price Display */}
+                                {/* Rental Inclusions */}
+                                <div className="bg-[#FFD700]/5 border border-[#FFD700]/10 rounded-2xl p-5 space-y-3 mt-6">
+                                    <h4 className="font-bold text-[#FFD700] text-xs uppercase tracking-widest mb-2 border-b border-[#FFD700]/10 pb-2">Included Premium Services</h4>
+                                    <ul className="space-y-2 text-xs">
+                                        {(car?.features && car.features.length > 0
+                                            ? car.features
+                                            : [
+                                                "300km daily mileage limit",
+                                                "Free Luxury Delivery & Pickup (Dubai)",
+                                                "24/7 VIP Roadside Assistance"
+                                            ]
+                                        ).map((feature, idx) => (
+                                            <li key={idx} className="flex items-start text-gray-300">
+                                                <Check className="text-[#00ff88] mr-2 mt-0.5 flex-shrink-0" size={14} />
+                                                <span>{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* Total Price Calculation */}
                                 {startDate && endDate && (
-                                    <div className="bg-black/50 rounded-lg p-4 mb-6 border border-zinc-800">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-gray-400">Duration</span>
-                                            <span className="text-white font-medium">{calculateDays()} days</span>
-                                        </div>
-                                        <div className="flex justify-between items-center pt-2 border-t border-zinc-800">
-                                            <span className="text-gray-300">Total Price</span>
-                                            <span className="text-xl font-bold text-yellow-500">{calculatePrice()}</span>
+                                    <div className="bg-gradient-to-r from-zinc-900 to-black border border-[#FFD700]/20 p-5 rounded-2xl shadow-inner">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-400 text-sm font-light">Total Estimated Cost</span>
+                                            <span className="font-bruno text-2xl text-[#FFD700] drop-shadow-[0_0_8px_rgba(255,215,0,0.3)]">{calculatePrice()}</span>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Book Button */}
-                                <button
-                                    onClick={handleBookNow}
-                                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 text-black font-bold py-4 rounded-xl transition-all duration-300 shadow-lg shadow-yellow-900/20 flex items-center justify-center gap-2 mb-4"
-                                >
-                                    <Check className="w-5 h-5" />
-                                    BOOK NOW
-                                </button>
-
-                                {/* Contact Options */}
-                                <div className="grid grid-cols-2 gap-3">
+                                {/* Action Buttons */}
+                                <div className="space-y-3 pt-4">
                                     <a
-                                        href={`https://wa.me/971501234567?text=I'm interested in renting the ${car?.brand} ${car?.model}`}
+                                        href={car?.phone ? `https://wa.me/${car.phone.replace(/[^0-9]/g, '')}` : "#"}
                                         target="_blank"
-                                        rel="noreferrer"
-                                        className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white py-3 rounded-lg font-medium transition-colors"
+                                        rel="noopener noreferrer"
+                                        className="group bg-[#25D366] hover:bg-[#128C7E] text-white font-bruno flex items-center justify-center gap-3 w-full py-4 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] hover:-translate-y-0.5"
                                     >
-                                        <MessageSquare size={18} />
-                                        WhatsApp
+                                        <MessageSquare size={20} className="fill-white" />
+                                        <span className="tracking-wider text-sm">WHATSAPP INQUIRY</span>
                                     </a>
-                                    <a
-                                        href="tel:+971501234567"
-                                        className="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-lg font-medium transition-colors"
-                                    >
-                                        <PhoneCall size={18} />
-                                        Call
-                                    </a>
-                                </div>
-                            </div>
 
-                            <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800 text-sm text-gray-400">
-                                <p className="mb-2 flex items-start gap-2">
-                                    <Check size={16} className="text-green-500 mt-0.5 shrink-0" />
-                                    <span>Free cancellation up to 24 hours before pick-up</span>
-                                </p>
-                                <p className="mb-2 flex items-start gap-2">
-                                    <Check size={16} className="text-green-500 mt-0.5 shrink-0" />
-                                    <span>Best price guarantee</span>
-                                </p>
-                                <p className="flex items-start gap-2">
-                                    <Check size={16} className="text-green-500 mt-0.5 shrink-0" />
-                                    <span>No hidden fees or charges</span>
-                                </p>
+                                    <a
+                                        href={car?.phone ? `tel:${car.phone.replace(/[^0-9]/g, '')}` : "#"}
+                                        className="group bg-[#FFD700] hover:bg-[#FDB931] text-black font-bruno flex items-center justify-center gap-3 w-full py-4 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(255,215,0,0.39)] hover:shadow-[0_6px_20px_rgba(255,215,0,0.23)] hover:-translate-y-0.5"
+                                    >
+                                        <PhoneCall size={20} />
+                                        <span className="tracking-wider text-sm">{car?.phone || "+971 50 123 4567"}</span>
+                                    </a>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleBookNow}
+                                        className="w-full py-4 rounded-xl bg-gradient-to-r from-[#FFD700] via-[#FDB931] to-[#B8860B] text-black font-bruno font-bold tracking-widest hover:shadow-[0_0_25px_rgba(255,215,0,0.4)] transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden group"
+                                    >
+                                        <span className="relative z-10 flex items-center justify-center gap-2">
+                                            BOOK NOW <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                        </span>
+                                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 skew-y-12"></div>
+                                    </button>
+                                </div>
+                            </form>
+
+                            {/* Location */}
+                            <div className="mt-8 pt-6 border-t border-white/10 text-center">
+                                <h4 className="font-bold text-gray-500 text-xs uppercase tracking-widest mb-2">Luxury Pickup Location</h4>
+                                <address className="not-italic text-gray-300 text-xs leading-relaxed opacity-70 hover:opacity-100 transition-opacity">
+                                    Sheikh Zayed Road, Al Wasl Business Center<br />
+                                    Office 302, Dubai, United Arab Emirates
+                                </address>
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
 
-            <FooterSection />
 
             {/* Booking Modal */}
             {showBookingModal && (
@@ -1043,6 +1005,11 @@ export default function CarDetailsClient({ id }) {
                     isSubmitting={isSubmitting}
                 />
             )}
+
+            {/* Footer */}
+            <FooterSection />
         </div>
     );
+
+
 }

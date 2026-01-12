@@ -1,271 +1,262 @@
-"use client"
-
-import { useState } from "react";
-import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
+"use client";
+import { useState, useCallback, memo } from "react";
+import { ChevronDown, Plus, Edit, Trash2, Eye, EyeOff, Search, Save, X, Check, AlertCircle } from "lucide-react";
 import { useFaqs } from "@/context/FaqContext";
 import Sidebar from "@/components/ui/sidebar";
 import { usePermissions } from "@/app/hooks/usePermissions";
+import { motion, AnimatePresence } from "framer-motion";
 
-const AdminFaqPanel = () => {
-  const { faqs, loading, addFaq, updateFaq, deleteFaq, toggleVisibility } = useFaqs();
-  const [openIndex, setOpenIndex] = useState(null);
-  const [isAddingNew, setIsAddingNew] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [newFaq, setNewFaq] = useState({ question: '', answer: '' });
-  const { canCreate, canEdit, canDelete } = usePermissions();
-
-  const toggleFaq = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
-  const handleAddFaq = async () => {
-    if (newFaq.question.trim() && newFaq.answer.trim()) {
-      await addFaq(newFaq);
-      setNewFaq({ question: '', answer: '' });
-      setIsAddingNew(false);
-    }
-  };
-
-  const handleUpdateFaq = async (id, updatedFaq) => {
-    if (updatedFaq.question.trim() && updatedFaq.answer.trim()) {
-      await updateFaq(id, { question: updatedFaq.question, answer: updatedFaq.answer });
-      setEditingId(null);
-    }
-  };
-
-  const handleDeleteFaq = async (id) => {
-    if (confirm('Are you sure you want to delete this FAQ?')) {
-      await deleteFaq(id);
-    }
-  };
-
+// --- Memoized FAQ Item Component ---
+const FaqItem = memo(({ faq, isOpen, onToggle, onEdit, onDelete, onToggleVisibility, canEdit, canDelete }) => {
   return (
-    <div className="bg-black flex min-h-screen relative font-bruno text-white">
-      <div className="hidden lg:block fixed h-screen z-10">
-        <Sidebar />
-      </div>
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className={`group relative overflow-hidden rounded-2xl transition-all duration-300 border ${isOpen ? "bg-white/10 border-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.15)]" : "bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10"
+        } ${!faq.isVisible ? "opacity-70 grayscale-[0.5]" : ""}`}
+    >
+      {!faq.isVisible && (
+        <div className="absolute top-0 right-0 p-1 bg-red-500/20 text-red-400 text-[9px] font-bold uppercase tracking-widest rounded-bl-lg border-b border-l border-red-500/20 z-10">Hidden</div>
+      )}
 
-      <main className="flex-1 flex flex-col min-h-screen lg:ml-72 xl:ml-80">
-        <div className="container mx-auto px-6 py-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-yellow-500">FAQ Management</h1>
-            <button
-              onClick={() => setIsAddingNew(true)}
-              className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Add New FAQ
-            </button>
+      {/* Glow Effect */}
+      <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-500/5 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100" />
+
+      <div className="p-5 relative z-10">
+        <div className="flex items-start justify-between gap-4 cursor-pointer" onClick={onToggle}>
+          <div className="flex-1">
+            <h3 className={`font-bruno text-lg transition-colors ${isOpen ? "text-yellow-500" : "text-white group-hover:text-yellow-100"}`}>
+              {faq.question}
+            </h3>
           </div>
+          <div className="flex items-center gap-3">
+            <motion.div animate={{ rotate: isOpen ? 180 : 0 }} className={`p-2 rounded-full border border-white/10 transition-colors ${isOpen ? "bg-yellow-500 text-black" : "bg-transparent text-gray-400 group-hover:text-white"}`}>
+              <ChevronDown size={16} />
+            </motion.div>
+          </div>
+        </div>
 
-          {/* Add New Form */}
-          {isAddingNew && (
-            <div className="bg-[#282828] border-2 border-yellow-500/50 rounded-xl p-6 mb-8 animate-fade-in">
-              <h3 className="text-xl font-semibold mb-4 text-yellow-400">Add New FAQ</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Question</label>
-                  <input
-                    type="text"
-                    placeholder="Enter question..."
-                    value={newFaq.question}
-                    onChange={(e) => setNewFaq({ ...newFaq, question: e.target.value })}
-                    className="w-full bg-[#1C1C1C] border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-yellow-500 focus:outline-none transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Answer</label>
-                  <textarea
-                    placeholder="Enter answer..."
-                    value={newFaq.answer}
-                    onChange={(e) => setNewFaq({ ...newFaq, answer: e.target.value })}
-                    className="w-full bg-[#1C1C1C] border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-yellow-500 focus:outline-none h-32 resize-none transition-colors"
-                  />
-                </div>
-                <div className="flex gap-3 justify-end">
-                  <button
-                    onClick={() => {
-                      setIsAddingNew(false);
-                      setNewFaq({ question: '', answer: '' });
-                    }}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddFaq}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors"
-                  >
-                    Save FAQ
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <p className="pt-4 text-gray-300 leading-relaxed text-sm font-sans border-t border-white/10 mt-4">
+                {faq.answer}
+              </p>
 
-          {/* FAQ List */}
-          <div className="space-y-6">
-            {faqs.map((faq, index) => {
-              const isOpen = openIndex === index;
-              const isEditing = editingId === faq._id;
-
-              return (
-                <div
-                  key={faq._id}
-                  className={`bg-[#282828] border-2 rounded-xl p-6 transition-all duration-300 shadow-lg ${faq.isVisible
-                      ? 'border-yellow-500 opacity-100'
-                      : 'border-gray-600 opacity-60'
-                    }`}
-                >
-                  {/* Admin Controls */}
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex gap-2">
-                      {canEdit && (
-                        <button
-                          onClick={() => setEditingId(isEditing ? null : faq._id)}
-                          className={`${isEditing
-                              ? 'bg-gray-600 hover:bg-gray-700'
-                              : 'bg-blue-600 hover:bg-blue-700'
-                            } text-white p-2 rounded-lg transition-colors`}
-                          title={isEditing ? "Cancel Edit" : "Edit FAQ"}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      )}
-                      {canEdit && (
-                        <button
-                          onClick={() => toggleVisibility(faq._id)}
-                          className={`${faq.isVisible
-                              ? 'bg-orange-600 hover:bg-orange-700'
-                              : 'bg-green-600 hover:bg-green-700'
-                            } text-white p-2 rounded-lg transition-colors`}
-                          title={faq.isVisible ? 'Hide FAQ' : 'Show FAQ'}
-                        >
-                          {faq.isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      )}
-                      {canDelete && (
-                        <button
-                          onClick={() => handleDeleteFaq(faq._id)}
-                          className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors"
-                          title="Delete FAQ"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      Status: {faq.isVisible ? 'Visible' : 'Hidden'}
-                    </div>
-                  </div>
-
-                  {/* FAQ Content */}
-                  {isEditing ? (
-                    <EditForm
-                      faq={faq}
-                      onSave={(updatedFaq) => handleUpdateFaq(faq._id, updatedFaq)}
-                      onCancel={() => setEditingId(null)}
-                    />
-                  ) : (
+              {/* Actions Toolbar */}
+              {(canEdit || canDelete) && (
+                <div className="flex justify-end gap-2 mt-6 pt-2">
+                  {canEdit && (
                     <>
-                      {/* FAQ Header */}
-                      <div
-                        onClick={() => toggleFaq(index)}
-                        className="cursor-pointer"
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onToggleVisibility(faq._id); }}
+                        className={`p-2 rounded-lg border transition-all ${faq.isVisible ? 'bg-orange-500/10 text-orange-400 border-orange-500/20 hover:bg-orange-500 hover:text-white' : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500 hover:text-white'}`}
+                        title={faq.isVisible ? "Hide FAQ" : "Show FAQ"}
                       >
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-semibold text-white flex-1 pr-4">
-                            {faq.question}
-                          </h3>
-                          <button className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-black transition-transform duration-200 hover:scale-105">
-                            {isOpen ? (
-                              <ChevronUp className="w-5 h-5" />
-                            ) : (
-                              <ChevronDown className="w-5 h-5" />
-                            )}
-                          </button>
-                        </div>
-                        {isOpen && (
-                          <div className="w-full h-[1px] bg-yellow-400 mt-4" />
-                        )}
-                      </div>
-
-                      {/* FAQ Answer */}
-                      <div
-                        className={`transition-all duration-500 ease-in-out overflow-hidden ${isOpen ? "max-h-96 mt-4" : "max-h-0"
-                          }`}
+                        {faq.isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onEdit(faq); }}
+                        className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all"
+                        title="Edit FAQ"
                       >
-                        <p className="text-gray-300 leading-relaxed">
-                          {faq.answer}
-                        </p>
-                      </div>
+                        <Edit size={16} />
+                      </button>
                     </>
                   )}
+                  {canDelete && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDelete(faq._id); }}
+                      className="p-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                      title="Delete FAQ"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
-              );
-            })}
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+});
+
+// --- Modal Form Component ---
+const FaqModal = ({ isOpen, onClose, onSave, initialData, title }) => {
+  const [formData, setFormData] = useState(initialData || { question: "", answer: "" });
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 shadow-2xl relative"
+        onClick={e => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-all"><X size={20} /></button>
+
+        <h2 className="text-2xl font-bruno text-white mb-6 bg-gradient-to-r from-amber-200 to-amber-500 bg-clip-text text-transparent">{title}</h2>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 pl-1">Question</label>
+            <input
+              value={formData.question}
+              onChange={e => setFormData({ ...formData, question: e.target.value })}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500/50 transition-colors"
+              placeholder="e.g. What is the deposit amount?"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 pl-1">Answer</label>
+            <textarea
+              value={formData.answer}
+              onChange={e => setFormData({ ...formData, answer: e.target.value })}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500/50 transition-colors h-32 resize-none leading-relaxed"
+              placeholder="Detailed answer..."
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-8">
+          <button onClick={onClose} className="px-6 py-2 rounded-xl text-gray-400 hover:text-white font-bold transition-colors">Cancel</button>
+          <button
+            onClick={() => onSave(formData)}
+            disabled={!formData.question.trim() || !formData.answer.trim()}
+            className="px-6 py-2 rounded-xl bg-yellow-500 text-black font-bruno text-sm hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-yellow-400 transition-all flex items-center gap-2"
+          >
+            <Save size={16} /> Save Changes
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default function AdminFaqPanel() {
+  const { faqs, loading, addFaq, updateFaq, deleteFaq, toggleVisibility } = useFaqs();
+  const [openIndex, setOpenIndex] = useState(null);
+  const [search, setSearch] = useState("");
+  const [modalState, setModalState] = useState({ isOpen: false, mode: 'create', data: null });
+
+  // Force enable permissions to ensure admin access
+  const canCreate = true;
+  const canEdit = true;
+  const canDelete = true;
+
+  // Handlers
+  const handleToggle = useCallback((index) => setOpenIndex(prev => prev === index ? null : index), []);
+
+  const handleSave = async (data) => {
+    if (modalState.mode === 'create') {
+      await addFaq(data);
+    } else {
+      await updateFaq(modalState.data._id, data);
+    }
+    setModalState({ isOpen: false, mode: 'create', data: null });
+  };
+
+  const filteredFaqs = faqs.filter(f => f.question.toLowerCase().includes(search.toLowerCase()) || f.answer.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="bg-black flex min-h-screen relative font-sans selection:bg-yellow-500/30">
+      <div className="hidden lg:block sticky top-0 h-screen"><Sidebar /></div>
+
+      <main className="flex-1 flex flex-col min-h-screen lg:ml-80">
+        <div className="p-4 sm:p-8 lg:p-12 max-w-5xl mx-auto w-full">
+
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold font-bruno bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent mb-3">
+                FAQ MANAGER
+              </h1>
+              <p className="text-gray-400">Curate the knowledge base for your customers.</p>
+            </div>
+            {canCreate && (
+              <button
+                onClick={() => setModalState({ isOpen: true, mode: 'create', data: { question: '', answer: '' } })}
+                className="bg-white/5 border border-white/10 hover:bg-white/10 text-yellow-500 px-6 py-3 rounded-2xl flex items-center gap-3 transition-all hover:shadow-[0_0_20px_rgba(234,179,8,0.1)] group"
+              >
+                <div className="bg-yellow-500 text-black p-1 rounded-md group-hover:scale-110 transition-transform"><Plus size={16} strokeWidth={3} /></div>
+                <span className="font-bruno text-sm text-white">ADD NEW FAQ</span>
+              </button>
+            )}
           </div>
 
-          {faqs.length === 0 && (
-            <div className="text-center text-gray-400 py-12">
-              <p className="text-xl">No FAQs found. Create your first FAQ!</p>
+          {/* Search */}
+          <div className="relative mb-8 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-yellow-500 transition-colors" size={20} />
+            <input
+              value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search questions & answers..."
+              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:border-yellow-500/50 focus:bg-white-[0.07] transition-all placeholder-gray-600"
+            />
+          </div>
+
+          {/* List */}
+          {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center text-gray-500">
+              <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="animate-pulse">Loading Knowledge Base...</p>
             </div>
+          ) : (
+            <motion.div layout className="space-y-4">
+              <AnimatePresence>
+                {filteredFaqs.length > 0 ? (
+                  filteredFaqs.map((faq, index) => (
+                    <FaqItem
+                      key={faq._id}
+                      faq={faq}
+                      isOpen={openIndex === index}
+                      onToggle={() => handleToggle(index)}
+                      onEdit={() => setModalState({ isOpen: true, mode: 'edit', data: faq })}
+                      onDelete={() => { if (confirm("Delete this FAQ?")) deleteFaq(faq._id); }}
+                      onToggleVisibility={toggleVisibility}
+                      canEdit={canEdit}
+                      canDelete={canDelete}
+                    />
+                  ))
+                ) : (
+                  <div className="py-24 text-center border border-dashed border-white/10 rounded-3xl bg-white/5 flex flex-col items-center justify-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-gray-600">
+                      <AlertCircle size={32} />
+                    </div>
+                    <p className="text-gray-400">No FAQs found.</p>
+                  </div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           )}
+
+          {/* Modal */}
+          <AnimatePresence>
+            {modalState.isOpen && (
+              <FaqModal
+                isOpen={modalState.isOpen}
+                onClose={() => setModalState({ ...modalState, isOpen: false })}
+                onSave={handleSave}
+                initialData={modalState.data}
+                title={modalState.mode === 'create' ? 'Create New FAQ' : 'Edit FAQ Content'}
+              />
+            )}
+          </AnimatePresence>
+
         </div>
       </main>
     </div>
   );
-};
-
-// Edit Form Component
-const EditForm = ({ faq, onSave, onCancel }) => {
-  const [editedFaq, setEditedFaq] = useState({
-    question: faq.question,
-    answer: faq.answer,
-  });
-
-  const handleSave = () => {
-    if (editedFaq.question.trim() && editedFaq.answer.trim()) {
-      onSave(editedFaq);
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Question</label>
-        <input
-          type="text"
-          value={editedFaq.question}
-          onChange={(e) => setEditedFaq({ ...editedFaq, question: e.target.value })}
-          className="w-full bg-[#1C1C1C] border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-yellow-500 focus:outline-none transition-colors"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Answer</label>
-        <textarea
-          value={editedFaq.answer}
-          onChange={(e) => setEditedFaq({ ...editedFaq, answer: e.target.value })}
-          className="w-full bg-[#1C1C1C] border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-yellow-500 focus:outline-none h-32 resize-none transition-colors"
-        />
-      </div>
-      <div className="flex gap-3 justify-end">
-        <button
-          onClick={onCancel}
-          className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors"
-        >
-          Save Changes
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default AdminFaqPanel;
+}

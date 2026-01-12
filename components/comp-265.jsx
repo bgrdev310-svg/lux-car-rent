@@ -31,11 +31,11 @@ export default function PriceSlider({ onFilterChange, initialRange = [200, 780],
     handleSliderChange,
   } = useSliderWithInput({ minValue, maxValue, initialValue: [minValue, maxValue] })
 
-  // Decorative histogram: always show 10 beautiful bars, not based on data
-  const decorativeHeights = [60, 90, 40, 80, 55, 100, 70, 50, 85, 65]; // heights in px for design
+  // Decorative histogram: taller bars for better visibility
+  const decorativeHeights = [85, 130, 60, 115, 80, 140, 100, 70, 120, 95]; // heights in px
   let histogramBars = null;
   histogramBars = (
-    <div className="flex h-24 w-full items-end px-1 gap-1" aria-hidden="true">
+    <div className="flex h-40 w-full items-end px-1 gap-1" aria-hidden="true">
       {decorativeHeights.map((height, i) => {
         // Calculate the price range for this bar
         const barMin = minValue + i * ((maxValue - minValue) / decorativeHeights.length);
@@ -43,13 +43,13 @@ export default function PriceSlider({ onFilterChange, initialRange = [200, 780],
         // Is this bar inside the selected slider range?
         const inRange = barMax > sliderValue[0] && barMin < sliderValue[1];
         return (
-          <div key={i} className="flex-1 flex justify-center">
+          <div key={i} className="flex-1 flex justify-center group/bar">
             <span
               className={
-                `block w-4 rounded-t-xl border border-amber-300 shadow-lg transition-all duration-300 ` +
+                `block w-4 rounded-t-xl transition-all duration-500 ease-out shadow-[0_0_10px_rgba(0,0,0,0.5)] ` +
                 (inRange
-                  ? 'bg-gradient-to-t from-amber-500 to-yellow-300 opacity-100'
-                  : 'bg-gradient-to-t from-gray-700 to-gray-400 opacity-40 grayscale')
+                  ? 'bg-gradient-to-t from-yellow-600 via-yellow-400 to-white shadow-[0_0_15px_rgba(250,204,21,0.6)] opacity-100 scale-y-100'
+                  : 'bg-white/10 opacity-30 group-hover/bar:bg-white/20 scale-y-95 grayscale')
               }
               style={{ height: `${height}px` }}
             ></span>
@@ -90,47 +90,50 @@ export default function PriceSlider({ onFilterChange, initialRange = [200, 780],
   };
 
   return (
-    <div className="bg-black p-6 rounded-2xl shadow-2xl border border-amber-400/30">
-      <div className="space-y-6">
+    <div className="bg-[#050505] p-6 rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] border border-white/10 backdrop-blur-xl relative overflow-hidden group">
+      {/* Subtle ambient glow */}
+      <div className="absolute top-0 right-0 w-full h-full bg-gradient-radial from-yellow-500/5 to-transparent pointer-events-none" />
+
+      <div className="space-y-6 relative z-10">
         <div className="flex items-center justify-between">
-          <Label className="text-amber-300 font-semibold text-lg">Price Range</Label>
-          <span className="text-amber-200 text-sm">
-            {selectedCount} items found
+          <Label className="text-white font-bruno text-xl tracking-wider uppercase drop-shadow-md">Price Range</Label>
+          <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-3 py-1 rounded-full text-xs font-bold tracking-wide">
+            {selectedCount} ITEMS FOUND
           </span>
         </div>
-        
+
         {/* Histogram bars */}
-        <div className="mt-2">
+        <div className="mt-4">
           {items.length === 0 ? (
-            <div className="text-center text-amber-400 py-8">No data to display</div>
+            <div className="text-center text-gray-500 py-8 font-light">No vehicles available</div>
           ) : (
-            histogramBars
+            <div className="relative">
+              {histogramBars}
+              {/* Custom Slider Styling - Positioned to align with bar bottom */}
+              <div className="relative -mt-3 z-20 px-1">
+                <Slider
+                  value={sliderValue}
+                  onValueChange={handleSliderValueChange}
+                  min={minValue}
+                  max={maxValue}
+                  step={1}
+                  aria-label="Price range"
+                  className="relative flex items-center select-none touch-none w-full h-6 cursor-pointer"
+                  data-slider="true"
+                />
+              </div>
+            </div>
           )}
-          
-          {/* Custom Slider Styling */}
-          <div className="pt-4 pb-2 px-1">
-            <Slider
-              value={sliderValue}
-              onValueChange={handleSliderValueChange}
-              min={minValue}
-              max={maxValue}
-              step={1}
-              aria-label="Price range"
-              className="relative flex items-center select-none touch-none w-full h-10"
-              // Use a class name for styles to avoid hydration issues
-              data-slider="true"
-            />
-          </div>
         </div>
-        
+
         {/* Inputs */}
         <div className="flex items-center justify-between gap-4 pt-2">
           <div className="w-full space-y-2">
-            <Label htmlFor={`${id}-min`} className="text-amber-300">Minimum</Label>
-            <div className="relative">
+            <Label htmlFor={`${id}-min`} className="text-[10px] uppercase tracking-widest text-gray-400 font-bold pl-1">Min Price</Label>
+            <div className="relative group/input">
               <Input
                 id={`${id}-min`}
-                className="peer w-full pl-8 pr-3 py-3 bg-gray-900 border-amber-500/50 rounded-xl text-white focus:border-amber-400 focus:ring focus:ring-amber-400/20 transition-all"
+                className="peer w-full pl-8 pr-3 py-6 bg-[#0a0a0a] border-white/10 rounded-xl text-white font-bruno text-lg focus:border-yellow-500/50 focus:ring-0 focus:bg-[#111] transition-all placeholder:text-gray-700"
                 type="text"
                 inputMode="decimal"
                 value={inputValues[0]}
@@ -142,22 +145,22 @@ export default function PriceSlider({ onFilterChange, initialRange = [200, 780],
                   }
                 }}
                 aria-label="Enter minimum price" />
-              <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-amber-400 font-semibold text-sm">
+              <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-yellow-600 peer-focus:text-yellow-500 font-bruno text-lg transition-colors">
                 $
               </span>
             </div>
           </div>
-          
-          <div className="flex items-center justify-center py-2 px-4">
-            <div className="w-8 h-px bg-amber-500/30"></div>
+
+          <div className="flex items-center justify-center pt-6">
+            <div className="w-4 h-[2px] bg-white/10"></div>
           </div>
-          
+
           <div className="w-full space-y-2">
-            <Label htmlFor={`${id}-max`} className="text-amber-300">Maximum</Label>
-            <div className="relative">
+            <Label htmlFor={`${id}-max`} className="text-[10px] uppercase tracking-widest text-gray-400 font-bold pl-1">Max Price</Label>
+            <div className="relative group/input">
               <Input
                 id={`${id}-max`}
-                className="peer w-full pl-8 pr-3 py-3 bg-gray-900 border-amber-500/50 rounded-xl text-white focus:border-amber-400 focus:ring focus:ring-amber-400/20 transition-all"
+                className="peer w-full pl-8 pr-3 py-6 bg-[#0a0a0a] border-white/10 rounded-xl text-white font-bruno text-lg focus:border-yellow-500/50 focus:ring-0 focus:bg-[#111] transition-all placeholder:text-gray-700"
                 type="text"
                 inputMode="decimal"
                 value={inputValues[1]}
@@ -169,31 +172,19 @@ export default function PriceSlider({ onFilterChange, initialRange = [200, 780],
                   }
                 }}
                 aria-label="Enter maximum price" />
-              <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-amber-400 font-semibold text-sm">
+              <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-yellow-600 peer-focus:text-yellow-500 font-bruno text-lg transition-colors">
                 $
               </span>
             </div>
           </div>
         </div>
-        
-        {/* Price summary - conditionally rendered */}
-        {!hideRangeDisplay && (
-          <div className="bg-gray-900/70 rounded-lg p-3 border border-amber-500/20">
-            <div className="flex justify-between items-center">
-              <div className="text-gray-300 text-sm">Price range:</div>
-              <div className="text-amber-300 font-medium">
-                ${formatPrice(sliderValue[0])} — ${formatPrice(sliderValue[1])}
-              </div>
-            </div>
-          </div>
-        )}
-        
+
         {/* Button */}
-        <Button 
+        <Button
           onClick={() => onFilterChange && onFilterChange(true, sliderValue)}
-          className="w-full py-5 bg-gradient-to-r from-amber-700 via-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-600 text-black font-semibold rounded-xl border border-amber-300/20 shadow-lg transition-all duration-300 hover:shadow-amber-500/20 hover:scale-[1.01]"
+          className="w-full h-14 bg-[#FFD700] hover:bg-[#FFC000] text-black font-bruno uppercase tracking-widest text-sm rounded-xl shadow-[0_0_20px_rgba(255,215,0,0.3)] hover:shadow-[0_0_30px_rgba(255,215,0,0.5)] transition-all duration-300 hover:scale-[1.01] border-none mt-2"
         >
-          Show {selectedCount} Items
+          SHOW {selectedCount} ITEMS
         </Button>
       </div>
     </div>

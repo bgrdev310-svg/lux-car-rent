@@ -4,17 +4,18 @@ import { useState, useEffect, useCallback } from "react";
 import PriceSlider from "../comp-265";  // Adjust this path based on where PriceSlider is located
 import { Button } from "@/components/ui/button";
 import { Check, ChevronDown, ChevronUp, X, Filter } from "lucide-react";
+import BrandSelectionModal from "@/app/components/cars/BrandSelectionModal";
 
 export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars = [] }) {
   // Initialize state from props but only on first render
   const [isInitialMount, setIsInitialMount] = useState(true);
-  
+
   // Initialize search state from props or empty string
   const [searchValue, setSearchValue] = useState(activeFilters.search || '');
-  
+
   const [isBrandDropdownOpen, setBrandDropdownOpen] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState(activeFilters.brand || '');
-  
+
   // Mobile filter expansion states
   const [expandedSections, setExpandedSections] = useState({
     category: false,
@@ -22,7 +23,7 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
     fuel: false,
     transmission: false
   });
-  
+
   // Track active filters locally
   const [localActiveFilters, setLocalActiveFilters] = useState({
     search: activeFilters.search ? true : false,
@@ -35,7 +36,7 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
 
   // State for brands from database
   const [carBrands, setCarBrands] = useState([]);
-  
+
   // Fetch brands from API
   useEffect(() => {
     const fetchBrands = async () => {
@@ -51,7 +52,7 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
         console.error('Error fetching brands:', error);
       }
     };
-    
+
     fetchBrands();
   }, []);
 
@@ -95,18 +96,18 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
   // Update local state when activeFilters prop changes
   useEffect(() => {
     if (isInitialMount) return;
-    
+
     // Update searchValue when activeFilters.search changes but NOT when typing
     if (searchValue !== activeFilters.search && !document.activeElement?.id === "search-input") {
       setSearchValue(activeFilters.search || '');
     }
-    
+
     setSelectedBrand(activeFilters.brand || '');
     setLocalActiveFilters(prev => ({
       ...prev,
       search: !!activeFilters.search,
-      price: activeFilters.priceRange && 
-             (activeFilters.priceRange[0] !== 0 || activeFilters.priceRange[1] !== 10000),
+      price: activeFilters.priceRange &&
+        (activeFilters.priceRange[0] !== 0 || activeFilters.priceRange[1] !== 10000),
       category: activeFilters.category || null,
       brand: activeFilters.brand || null,
       fuelType: activeFilters.fuelType || null,
@@ -118,13 +119,13 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
   const handleSearchChange = useCallback((e) => {
     const newValue = e.target.value;
     setSearchValue(newValue);
-    
+
     // Update local filter state for UI immediately
     setLocalActiveFilters(prev => ({
       ...prev,
       search: newValue.trim().length > 0
     }));
-    
+
     // Apply search filter immediately
     if (onFilterChange) {
       onFilterChange('search', newValue);
@@ -200,7 +201,7 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
       fuelType: null,
       transmission: null
     });
-    
+
     if (onFilterChange) {
       onFilterChange({
         search: '',
@@ -248,7 +249,7 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
   ]);
 
   // Count active filters
-  const activeFilterCount = Object.values(localActiveFilters).filter(value => 
+  const activeFilterCount = Object.values(localActiveFilters).filter(value =>
     value === true || (value !== false && value !== null)
   ).length;
 
@@ -261,7 +262,7 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
             <div className="text-amber-300 font-medium text-sm md:text-base">
               Active: {activeFilterCount}
             </div>
-            <Button 
+            <Button
               onClick={resetAllFilters}
               className="bg-transparent hover:bg-amber-900/30 text-amber-400 px-2 py-1 text-xs flex items-center gap-1"
             >
@@ -326,63 +327,66 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
       )}
 
       {/* Enhanced Search Bar - Mobile Optimized */}
-      <div className="relative">
-        <div className="flex w-full items-center font-bruno text-lg md:text-xl lg:text-2xl bg-gradient-to-r from-[#FFBB00] to-[#FF9D00] hover:opacity-90 transition duration-300 rounded-full px-3 md:px-4 lg:px-5 py-2 md:py-1 shadow-md h-10 md:h-11 lg:h-12">
-          <div className="relative w-full">
-            <input
-              id="search-input"
-              type="text"
-              value={searchValue}
-              onChange={handleSearchChange}
-              className="bg-transparent outline-none text-black w-full pl-2 md:pl-3 lg:pl-4 pr-8 md:pr-10 placeholder-black placeholder-opacity-70 text-sm md:text-base lg:text-lg"
-              placeholder="Search vehicles..."
-            />
-            
-            <img
-              src="/icons/search.svg"
-              alt="Search Icon"
-              className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5"
-            />
+      {!activeFilters.hideSearch && (
+        <div className="relative">
+          <div className="flex w-full items-center font-bruno text-lg md:text-xl lg:text-2xl bg-gradient-to-r from-[#FFBB00] to-[#FF9D00] hover:opacity-90 transition duration-300 rounded-full px-3 md:px-4 lg:px-5 py-2 md:py-1 shadow-md h-10 md:h-11 lg:h-12">
+            <div className="relative w-full">
+              <input
+                id="search-input"
+                type="text"
+                value={searchValue}
+                onChange={handleSearchChange}
+                className="bg-transparent outline-none text-black w-full pl-2 md:pl-3 lg:pl-4 pr-8 md:pr-10 placeholder-black placeholder-opacity-70 text-sm md:text-base lg:text-lg"
+                placeholder="Search vehicles..."
+              />
+
+              <img
+                src="/icons/search.svg"
+                alt="Search Icon"
+                className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5"
+              />
+            </div>
           </div>
+          {searchValue && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-8 md:right-10 lg:right-14 top-1/2 transform -translate-y-1/2 text-black"
+            >
+              <X size={14} className="md:hidden" />
+              <X size={18} className="hidden md:block" />
+            </button>
+          )}
         </div>
-        {searchValue && (
-          <button 
-            onClick={clearSearch}
-            className="absolute right-8 md:right-10 lg:right-14 top-1/2 transform -translate-y-1/2 text-black"
-          >
-            <X size={14} className="md:hidden" />
-            <X size={18} className="hidden md:block" />
-          </button>
-        )}
-      </div>
+      )}
+
 
       {/* Price Range - Always Visible */}
-      <div>
-        <PriceSlider 
-          onFilterChange={handlePriceFilterChange} 
+      < div >
+        <PriceSlider
+          onFilterChange={handlePriceFilterChange}
           initialRange={activeFilters.priceRange || [0, 10000]}
           cars={cars}
           hideRangeDisplay={true} /* Hide the price range display section */
         />
-      </div>
+      </div >
 
       {/* Category - Collapsible on Mobile */}
-      <div>
-        <button 
+      < div >
+        <button
           className="flex justify-between items-center w-full lg:pointer-events-none"
           onClick={() => toggleSection('category')}
         >
           <h3 className="font-bruno text-lg md:text-xl uppercase text-gray-100 mb-2 lg:mb-5">Category</h3>
-          <ChevronDown 
-            size={20} 
+          <ChevronDown
+            size={20}
             className={`lg:hidden transition-transform ${expandedSections.category ? 'rotate-180' : ''}`}
           />
         </button>
         <div className={`${expandedSections.category ? 'block' : 'hidden'} lg:block`}>
           <div className="grid grid-cols-2 gap-2 md:gap-3 lg:gap-4 text-center">
             {categories.map((item, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`flex flex-col items-center mb-2 md:mb-4 cursor-pointer rounded-xl p-1 md:p-2 transition-all duration-200 ${localActiveFilters.category === item.label ? 'bg-amber-900/30 border border-amber-500/40' : 'hover:bg-gray-800/50'}`}
                 onClick={() => handleCategorySelect(item.label)}
               >
@@ -397,32 +401,23 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
             ))}
           </div>
         </div>
-      </div>
+      </div >
 
-      {/* Select Brand - Collapsible on Mobile */}
-      <div className="text-center space-y-2">
-        <button 
-          className="flex justify-between items-center w-full lg:pointer-events-none"
-          onClick={() => toggleSection('brand')}
-        >
-          <h3 className="font-bruno text-lg md:text-xl uppercase text-gray-100 mb-2 lg:mb-5">Select Brand</h3>
-          <ChevronDown 
-            size={20} 
-            className={`lg:hidden transition-transform ${expandedSections.brand ? 'rotate-180' : ''}`}
-          />
-        </button>
-        <div className={`${expandedSections.brand ? 'block' : 'hidden'} lg:block relative`}>
-          <button 
-            className={`font-bruno w-full text-black font-bold py-2 px-3 md:px-4 bg-gradient-to-r from-[#FFBB00] to-[#FF9D00] hover:opacity-90 transition duration-300 rounded-full shadow-md flex items-center justify-between text-xs md:text-sm lg:text-base ${selectedBrand ? 'border-2 border-white' : ''}`}
-            onClick={() => setBrandDropdownOpen(!isBrandDropdownOpen)}
+      {/* Select Brand - Modal Trigger */}
+      < div className="text-center space-y-2" >
+        <div className="w-full">
+          <h3 className="font-bruno text-lg md:text-xl uppercase text-gray-100 mb-2 lg:mb-5 text-left">Select Brand</h3>
+          <button
+            onClick={() => setBrandDropdownOpen(true)}
+            className={`font-bruno w-full text-black font-bold py-3 px-4 bg-gradient-to-r from-[#FFBB00] to-[#FF9D00] hover:opacity-90 transition duration-300 rounded-xl shadow-md flex items-center justify-between text-sm md:text-base ${selectedBrand ? 'border-2 border-white' : ''}`}
           >
             {selectedBrand ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {carBrands.find(b => b.name === selectedBrand)?.logo && (
-                  <img 
-                    src={carBrands.find(b => b.name === selectedBrand)?.logo} 
-                    alt={`${selectedBrand} logo`} 
-                    className="w-5 h-5 object-contain"
+                  <img
+                    src={carBrands.find(b => b.name === selectedBrand)?.logo}
+                    alt={`${selectedBrand} logo`}
+                    className="w-6 h-6 object-contain"
                   />
                 )}
                 <span className="truncate">{selectedBrand}</span>
@@ -430,62 +425,37 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
             ) : (
               <span className="truncate">SELECT BRAND</span>
             )}
-            {isBrandDropdownOpen ? <ChevronUp size={16} className="md:w-5 md:h-5" /> : <ChevronDown size={16} className="md:w-5 md:h-5" />}
+            <ChevronDown size={20} />
           </button>
-          
-          <div 
-            className={`absolute z-10 mt-2 w-full bg-gray-900 border border-amber-500/30 rounded-lg shadow-lg max-h-48 md:max-h-64 overflow-hidden transition-all duration-300 ease-in-out ${isBrandDropdownOpen ? 'opacity-100 max-h-48 md:max-h-64' : 'opacity-0 max-h-0 pointer-events-none'}`}
-          >
-            <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-amber-500 scrollbar-track-gray-800 max-h-48 md:max-h-64">
-              {carBrands.length > 0 ? (
-                carBrands.map((brand) => (
-                  <div 
-                    key={brand._id || brand.name} 
-                    className={`px-3 md:px-4 py-2 cursor-pointer font-bruno text-xs md:text-sm ${selectedBrand === brand.name ? 'bg-amber-900/50 text-amber-300' : 'hover:bg-gray-800 text-white'}`}
-                    onClick={() => handleBrandSelect(brand.name)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {brand.logo && (
-                          <img 
-                            src={brand.logo} 
-                            alt={`${brand.name} logo`} 
-                            className="w-6 h-6 object-contain"
-                          />
-                        )}
-                        <span className="truncate">{brand.name}</span>
-                      </div>
-                      {selectedBrand === brand.name && <Check size={14} className="text-amber-300 ml-2" />}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="px-3 md:px-4 py-2 text-center text-gray-400 text-xs md:text-sm">
-                  Loading brands...
-                </div>
-              )}
-            </div>
-          </div>
+
+          {/* Brand Modal */}
+          <BrandSelectionModal
+            isOpen={isBrandDropdownOpen}
+            onClose={() => setBrandDropdownOpen(false)}
+            brands={carBrands}
+            selectedBrand={selectedBrand}
+            onSelect={(brand) => handleBrandSelect(brand)}
+          />
         </div>
-      </div>
+      </div >
 
       {/* Fuel Type - Collapsible on Mobile */}
-      <div>
-        <button 
+      < div >
+        <button
           className="flex justify-between items-center w-full lg:pointer-events-none"
           onClick={() => toggleSection('fuel')}
         >
           <h3 className="font-bruno text-lg md:text-xl uppercase text-gray-100 mb-2 lg:mb-5">Fuel Type</h3>
-          <ChevronDown 
-            size={20} 
+          <ChevronDown
+            size={20}
             className={`lg:hidden transition-transform ${expandedSections.fuel ? 'rotate-180' : ''}`}
           />
         </button>
         <div className={`${expandedSections.fuel ? 'block' : 'hidden'} lg:block`}>
           <div className="grid grid-cols-2 gap-2 md:gap-3 lg:gap-4 text-center">
             {fuelTypes.map((item, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`flex flex-col items-center cursor-pointer rounded-xl p-1 md:p-2 transition-all duration-200 ${localActiveFilters.fuelType === item.label ? 'bg-amber-900/30 border border-amber-500/40' : 'hover:bg-gray-800/50'}`}
                 onClick={() => handleFuelTypeSelect(item.label)}
               >
@@ -500,25 +470,25 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
             ))}
           </div>
         </div>
-      </div>
+      </div >
 
       {/* Transmission - Collapsible on Mobile */}
-      <div>
-        <button 
+      < div >
+        <button
           className="flex justify-between items-center w-full lg:pointer-events-none"
           onClick={() => toggleSection('transmission')}
         >
           <h3 className="font-bruno text-lg md:text-xl uppercase text-gray-100 mb-2 lg:mb-5">Transmission</h3>
-          <ChevronDown 
-            size={20} 
+          <ChevronDown
+            size={20}
             className={`lg:hidden transition-transform ${expandedSections.transmission ? 'rotate-180' : ''}`}
           />
         </button>
         <div className={`${expandedSections.transmission ? 'block' : 'hidden'} lg:block`}>
           <div className="grid grid-cols-2 gap-2 md:gap-3 lg:gap-4 text-center">
             {transmissionTypes.map((item, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`flex flex-col items-center cursor-pointer rounded-xl p-1 md:p-2 transition-all duration-200 ${localActiveFilters.transmission === item.label ? 'bg-amber-900/30 border border-amber-500/40' : 'hover:bg-gray-800/50'}`}
                 onClick={() => handleTransmissionSelect(item.label)}
               >
@@ -533,11 +503,11 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
             ))}
           </div>
         </div>
-      </div>
+      </div >
 
       {/* Apply Filters Button - Sticky on Mobile */}
-      <div className="sticky bottom-0 bg-[#090909] pt-4 pb-2 lg:static lg:bg-transparent lg:pt-0 lg:pb-0">
-        <Button 
+      < div className="sticky bottom-0 bg-[#090909] pt-4 pb-2 lg:static lg:bg-transparent lg:pt-0 lg:pb-0" >
+        <Button
           onClick={applyAllFilters}
           className="w-full py-3 md:py-4 lg:py-5 bg-gradient-to-r from-amber-700 via-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-600 text-black font-semibold rounded-xl border border-amber-300/20 shadow-lg transition-all duration-300 hover:shadow-amber-500/20 hover:scale-[1.01] text-sm md:text-base"
         >
@@ -549,7 +519,7 @@ export default function FilterSidebar({ onFilterChange, activeFilters = {}, cars
             </span>
           )}
         </Button>
-      </div>
-    </aside>
+      </div >
+    </aside >
   );
 }
